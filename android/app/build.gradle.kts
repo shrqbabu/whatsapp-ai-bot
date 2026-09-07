@@ -1,8 +1,32 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+val envProperties = Properties()
+val envFiles = listOf(
+    file(".env"),
+    file("../.env"),
+    file("../../.env"),
+    rootProject.file(".env")
+)
+for (envFile in envFiles) {
+    if (envFile.exists()) {
+        try {
+            FileInputStream(envFile).use { envProperties.load(it) }
+            break
+        } catch (_: Exception) {}
+    }
+}
+
+val rawBackendUrl = envProperties.getProperty("BACKEND_URL")
+    ?: envProperties.getProperty("SERVER_URL")
+    ?: "http://10.0.2.2:4000"
+val backendUrl = rawBackendUrl.trim().trimEnd('/')
 
 android {
     namespace = "com.whatsappai.assistant"
@@ -14,6 +38,8 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
+
+        buildConfigField("String", "BACKEND_URL", "\"$backendUrl\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -45,6 +71,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     lint {

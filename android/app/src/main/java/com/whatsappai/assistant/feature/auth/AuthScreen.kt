@@ -108,10 +108,6 @@ fun AuthScreen(
     var fullName by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    var showServerDialog by remember { mutableStateOf(false) }
-    var currentServerUrl by remember { mutableStateOf(viewModel.getServerUrl()) }
-    var tempServerUrl by remember { mutableStateOf(viewModel.getServerUrl()) }
-
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
             onAuthSuccess()
@@ -265,56 +261,6 @@ fun AuthScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Server URL configuration button
-            TextButton(onClick = {
-                tempServerUrl = viewModel.getServerUrl()
-                showServerDialog = true
-            }) {
-                Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Backend Server: $currentServerUrl", fontSize = 12.sp)
-            }
         }
-    }
-
-    if (showServerDialog) {
-        AlertDialog(
-            onDismissRequest = { showServerDialog = false },
-            title = { Text("Backend Server URL") },
-            text = {
-                Column {
-                    Text("Enter your backend server base URL (e.g. http://10.0.2.2:4000 for emulator or your server IP):")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = tempServerUrl,
-                        onValueChange = { tempServerUrl = it },
-                        singleLine = true
-                    )
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    var cleanUrl = tempServerUrl.trim()
-                    if (cleanUrl.isNotEmpty()) {
-                        if (!cleanUrl.startsWith("http://", ignoreCase = true) && !cleanUrl.startsWith("https://", ignoreCase = true)) {
-                            cleanUrl = "https://$cleanUrl"
-                        }
-                        viewModel.setServerUrl(cleanUrl)
-                        currentServerUrl = cleanUrl
-                    }
-                    showServerDialog = false
-                }) {
-                    Text("Save")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { showServerDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
     }
 }

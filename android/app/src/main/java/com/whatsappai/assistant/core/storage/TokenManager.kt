@@ -57,7 +57,7 @@ class TokenManager(context: Context) {
     }
 
     fun getServerUrl(): String {
-        return prefs.getString(KEY_SERVER_URL, DEFAULT_SERVER_URL) ?: DEFAULT_SERVER_URL
+        return com.whatsappai.assistant.BuildConfig.BACKEND_URL
     }
 
     fun setServerUrl(url: String) {
@@ -79,6 +79,6 @@ class TokenManager(context: Context) {
         private const val KEY_EMAIL = "email"
         private const val KEY_FULL_NAME = "full_name"
         private const val KEY_SERVER_URL = "custom_server_url"
-        const val DEFAULT_SERVER_URL = "http://10.0.2.2:4000" // Standard Android emulator localhost alias
+        val DEFAULT_SERVER_URL = com.whatsappai.assistant.BuildConfig.BACKEND_URL
     }
 }
