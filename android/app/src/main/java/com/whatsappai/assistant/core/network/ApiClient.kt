@@ -6,6 +6,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
+import com.google.gson.GsonBuilder
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -71,10 +72,13 @@ class ApiClient(private val tokenManager: TokenManager) {
         }
         if (cachedRetrofit == null || cachedBaseUrl != currentBaseUrl) {
             cachedBaseUrl = currentBaseUrl
+            val gson = GsonBuilder()
+                .setLenient()
+                .create()
             cachedRetrofit = Retrofit.Builder()
                 .baseUrl(currentBaseUrl)
                 .client(getOkHttpClient())
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build()
         }
         return cachedRetrofit!!
