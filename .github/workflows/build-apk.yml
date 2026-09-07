@@ -43,7 +43,7 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: 🔍 Locate Android Project & Initialize Wrapper
+      - name: 🔍 Locate Android Project & Initialize Environment
         run: |
           if [ -d "whatsapp-ai-assistant/android" ]; then
             PROJECT_DIR="whatsapp-ai-assistant/android"
@@ -56,6 +56,13 @@ jobs:
           echo "Found Android project at: $PROJECT_DIR"
 
           cd $PROJECT_DIR
+
+          # Force create/update gradle.properties with AndroidX support
+          echo "android.useAndroidX=true" > gradle.properties
+          echo "android.nonTransitiveRClass=true" >> gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" >> gradle.properties
+          echo "kotlin.code.style=official" >> gradle.properties
+
           mkdir -p gradle/wrapper
           if [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
             echo "Downloading gradle-wrapper.jar..."
@@ -70,9 +77,9 @@ jobs:
         run: |
           cd $PROJECT_DIR
           if [ -f "./gradlew" ]; then
-            ./gradlew assembleDebug --no-daemon --stacktrace
+            ./gradlew assembleDebug -Pandroid.useAndroidX=true -Pandroid.nonTransitiveRClass=true --no-daemon --stacktrace
           else
-            gradle assembleDebug --no-daemon --stacktrace
+            gradle assembleDebug -Pandroid.useAndroidX=true -Pandroid.nonTransitiveRClass=true --no-daemon --stacktrace
           fi
 
       - name: 🔨 Build Release APK
@@ -80,9 +87,9 @@ jobs:
         run: |
           cd $PROJECT_DIR
           if [ -f "./gradlew" ]; then
-            ./gradlew assembleRelease --no-daemon --stacktrace
+            ./gradlew assembleRelease -Pandroid.useAndroidX=true -Pandroid.nonTransitiveRClass=true --no-daemon --stacktrace
           else
-            gradle assembleRelease --no-daemon --stacktrace
+            gradle assembleRelease -Pandroid.useAndroidX=true -Pandroid.nonTransitiveRClass=true --no-daemon --stacktrace
           fi
 
       - name: 📦 Collect & Rename Output APKs
