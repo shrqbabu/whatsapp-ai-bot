@@ -1,30 +1,22 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDatabase = getDatabase;
-exports.setDatabase = setDatabase;
-exports.runMigrations = runMigrations;
-const node_fs_1 = __importDefault(require("node:fs"));
-const node_path_1 = __importDefault(require("node:path"));
-const node_sqlite_1 = require("node:sqlite");
-const pg_1 = __importDefault(require("pg"));
-const index_js_1 = require("../config/index.js");
-const logger_js_1 = require("../utils/logger.js");
+import fs from 'node:fs';
+import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
+import pg from 'pg';
+import { config } from '../config/index.js';
+import { logger } from '../utils/logger.js';
 class SqliteDatabase {
     db;
     constructor(filePath) {
         if (!filePath || filePath === ':memory:') {
-            this.db = new node_sqlite_1.DatabaseSync(':memory:');
+            this.db = new DatabaseSync(':memory:');
         }
         else {
-            const resolved = node_path_1.default.resolve(process.cwd(), filePath);
-            const dir = node_path_1.default.dirname(resolved);
-            if (!node_fs_1.default.existsSync(dir)) {
-                node_fs_1.default.mkdirSync(dir, { recursive: true });
+            const resolved = path.resolve(process.cwd(), filePath);
+            const dir = path.dirname(resolved);
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
             }
-            this.db = new node_sqlite_1.DatabaseSync(resolved);
+            this.db = new DatabaseSync(resolved);
         }
         this.db.exec('PRAGMA foreign_keys = ON;');
     }
@@ -54,7 +46,7 @@ class SqliteDatabase {
             return rows;
         }
         catch (error) {
-            logger_js_1.logger.error({ sql, params, error }, 'SQLite query error');
+            logger.error({ sql, params, error }, 'SQLite query error');
             throw error;
         }
     }
@@ -65,7 +57,7 @@ class SqliteDatabase {
             return row ?? null;
         }
         catch (error) {
-            logger_js_1.logger.error({ sql, params, error }, 'SQLite queryOne error');
+            logger.error({ sql, params, error }, 'SQLite queryOne error');
             throw error;
         }
     }
@@ -76,7 +68,7 @@ class SqliteDatabase {
             return { changes: Number(res.changes || 0) };
         }
         catch (error) {
-            logger_js_1.logger.error({ sql, params, error }, 'SQLite execute error');
+            logger.error({ sql, params, error }, 'SQLite execute error');
             throw error;
         }
     }
@@ -90,7 +82,7 @@ class SqliteDatabase {
 class PostgresDatabase {
     pool;
     constructor(connectionString) {
-        this.pool = new pg_1.default.Pool({ connectionString });
+        this.pool = new pg.Pool({ connectionString });
     }
     isPostgres() {
         return true;
@@ -115,24 +107,24 @@ class PostgresDatabase {
     }
 }
 let dbInstance = null;
-function getDatabase() {
+export function getDatabase() {
     if (!dbInstance) {
-        if (index_js_1.config.DATABASE_URL && index_js_1.config.DATABASE_URL.startsWith('postgres')) {
-            logger_js_1.logger.info('Connecting to PostgreSQL database');
-            dbInstance = new PostgresDatabase(index_js_1.config.DATABASE_URL);
+        if (config.DATABASE_URL && config.DATABASE_URL.startsWith('postgres')) {
+            logger.info('Connecting to PostgreSQL database');
+            dbInstance = new PostgresDatabase(config.DATABASE_URL);
         }
         else {
-            const dbPath = index_js_1.config.isTest ? ':memory:' : index_js_1.config.SQLITE_PATH;
-            logger_js_1.logger.info({ dbPath }, 'Connecting to SQLite database');
+            const dbPath = config.isTest ? ':memory:' : config.SQLITE_PATH;
+            logger.info({ dbPath }, 'Connecting to SQLite database');
             dbInstance = new SqliteDatabase(dbPath);
         }
     }
     return dbInstance;
 }
-function setDatabase(customDb) {
+export function setDatabase(customDb) {
     dbInstance = customDb;
 }
-async function runMigrations() {
+export async function runMigrations() {
     const db = getDatabase();
     const schemaSql = `
     CREATE TABLE IF NOT EXISTS users (
@@ -165,6 +157,8 @@ async function runMigrations() {
       enabled INTEGER NOT NULL DEFAULT 1,
       system_prompt TEXT NOT NULL,
       model TEXT NOT NULL DEFAULT 'gpt-4o-mini',
+      api_base_url TEXT DEFAULT NULL,
+      api_key TEXT DEFAULT NULL,
       reply_delay INTEGER NOT NULL DEFAULT 3,
       debounce_delay INTEGER NOT NULL DEFAULT 2,
       groups_enabled INTEGER NOT NULL DEFAULT 0,
@@ -287,6 +281,19 @@ async function runMigrations() {
     CREATE INDEX IF NOT EXISTS idx_messages_wa_id ON messages(session_id, wa_message_id);
   `;
     await db.exec(schemaSql);
-    logger_js_1.logger.info('Database schema initialized successfully');
+    // Safely alter existing database if columns are missing
+    try {
+        await db.exec('ALTER TABLE ai_settings ADD COLUMN api_base_url TEXT DEFAULT NULL;');
+    }
+    catch (e) {
+        // Column may already exist
+    }
+    try {
+        await db.exec('ALTER TABLE ai_settings ADD COLUMN api_key TEXT DEFAULT NULL;');
+    }
+    catch (e) {
+        // Column may already exist
+    }
+    logger.info('Database schema initialized successfully');
 }
 //# sourceMappingURL=db.js.map

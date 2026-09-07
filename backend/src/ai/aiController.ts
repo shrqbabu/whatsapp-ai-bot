@@ -7,6 +7,8 @@ export const updateAISettingsSchema = z.object({
   enabled: z.boolean().optional(),
   system_prompt: z.string().min(1).optional(),
   model: z.string().min(1).optional(),
+  api_base_url: z.string().nullable().optional(),
+  api_key: z.string().nullable().optional(),
   reply_delay: z.number().min(0).max(60).optional(),
   debounce_delay: z.number().min(0).max(30).optional(),
   groups_enabled: z.boolean().optional(),

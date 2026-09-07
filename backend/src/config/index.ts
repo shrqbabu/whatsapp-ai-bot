@@ -12,6 +12,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().default('production-secure-jwt-secret-key-change-in-production-2026'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   OPENAI_API_KEY: z.string().optional().default(''),
+  OPENAI_BASE_URL: z.string().optional().default('https://api.openai.com/v1'),
   ANTHROPIC_API_KEY: z.string().optional().default(''),
   SESSION_STORAGE_DIR: z.string().default('storage/sessions'),
   DEFAULT_AI_MODEL: z.string().default('gpt-4o-mini'),

@@ -1,14 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const auth_js_1 = require("../middleware/auth.js");
-const tenantGuard_js_1 = require("../middleware/tenantGuard.js");
-const contactsController_js_1 = require("./contactsController.js");
-const router = (0, express_1.Router)();
-router.use(auth_js_1.authMiddleware, tenantGuard_js_1.tenantGuard);
-router.get('/', contactsController_js_1.ContactsController.listContacts);
-router.put('/:id/rules', contactsController_js_1.ContactsController.updateContactRules);
-router.get('/groups/:jid/rules', contactsController_js_1.ContactsController.getGroupRule);
-router.put('/groups/:jid/rules', contactsController_js_1.ContactsController.updateGroupRule);
-exports.default = router;
+import { Router } from 'express';
+import { authMiddleware } from '../middleware/auth.js';
+import { tenantGuard } from '../middleware/tenantGuard.js';
+import { ContactsController } from './contactsController.js';
+const router = Router();
+router.use(authMiddleware, tenantGuard);
+router.get('/', ContactsController.listContacts);
+router.put('/:id/rules', ContactsController.updateContactRules);
+router.get('/groups/:jid/rules', ContactsController.getGroupRule);
+router.put('/groups/:jid/rules', ContactsController.updateGroupRule);
+export default router;
 //# sourceMappingURL=contactsRoutes.js.map

@@ -9,6 +9,8 @@ export interface AIRequestContext {
   incomingMessage: string;
   senderName?: string;
   modelName?: string;
+  apiKey?: string | null;
+  apiBaseUrl?: string | null;
 }
 
 export interface AIProvider {

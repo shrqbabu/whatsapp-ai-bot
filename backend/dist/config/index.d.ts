@@ -8,6 +8,7 @@ export declare const config: {
     JWT_SECRET: string;
     JWT_EXPIRES_IN: string;
     OPENAI_API_KEY: string;
+    OPENAI_BASE_URL: string;
     ANTHROPIC_API_KEY: string;
     SESSION_STORAGE_DIR: string;
     DEFAULT_AI_MODEL: string;

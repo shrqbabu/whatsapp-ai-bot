@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MockAIProvider = void 0;
-class MockAIProvider {
+export class MockAIProvider {
     name = 'mock';
     customReplyGenerator;
     constructor(customReplyGenerator) {
@@ -27,5 +24,4 @@ class MockAIProvider {
         return `Thank you for your message regarding: "${context.incomingMessage}". Our team is here to support you!`;
     }
 }
-exports.MockAIProvider = MockAIProvider;
 //# sourceMappingURL=MockAIProvider.js.map

@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RulesEngine = void 0;
-const businessHoursRepository_js_1 = require("../database/repositories/businessHoursRepository.js");
-class RulesEngine {
+import { BusinessHoursRepository } from '../database/repositories/businessHoursRepository.js';
+export class RulesEngine {
     /**
      * Complete decision pipeline:
      * 1. Safety & Loop Prevention
@@ -44,7 +41,7 @@ class RulesEngine {
         }
         // 6. Check Business Hours
         if (aiSettings.business_hours_enabled) {
-            const bh = await businessHoursRepository_js_1.BusinessHoursRepository.checkBusinessHours(sessionId);
+            const bh = await BusinessHoursRepository.checkBusinessHours(sessionId);
             if (!bh.isInside) {
                 if (bh.outsideAction === 'SEND_CUSTOM_MESSAGE' && bh.outsideMessage) {
                     return {
@@ -72,5 +69,4 @@ class RulesEngine {
         return { shouldReply: true };
     }
 }
-exports.RulesEngine = RulesEngine;
 //# sourceMappingURL=rulesEngine.js.map

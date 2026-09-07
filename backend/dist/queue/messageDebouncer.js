@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReplyScheduler = exports.MessageDebouncer = void 0;
-const logger_js_1 = require("../utils/logger.js");
-class MessageDebouncer {
+import { logEvent } from '../utils/logger.js';
+export class MessageDebouncer {
     // Map of conversationId -> active debounce job
     static activeJobs = new Map();
     /**
@@ -16,7 +13,7 @@ class MessageDebouncer {
             // Clear existing timer and append message
             clearTimeout(existingJob.timer);
             existingJob.messages.push(text);
-            (0, logger_js_1.logEvent)({ sessionId, conversationId, event: 'DEBOUNCE_APPENDED' }, `Debounce: Appended message (${existingJob.messages.length} messages buffered)`);
+            logEvent({ sessionId, conversationId, event: 'DEBOUNCE_APPENDED' }, `Debounce: Appended message (${existingJob.messages.length} messages buffered)`);
             existingJob.timer = setTimeout(async () => {
                 this.activeJobs.delete(conversationId);
                 const combined = existingJob.messages.join('\n');
@@ -39,7 +36,7 @@ class MessageDebouncer {
                 messages,
                 timer,
             });
-            (0, logger_js_1.logEvent)({ sessionId, conversationId, event: 'DEBOUNCE_STARTED' }, `Debounce: Started timer for ${debounceSeconds}s`);
+            logEvent({ sessionId, conversationId, event: 'DEBOUNCE_STARTED' }, `Debounce: Started timer for ${debounceSeconds}s`);
         }
     }
     static cancel(conversationId) {
@@ -50,8 +47,7 @@ class MessageDebouncer {
         }
     }
 }
-exports.MessageDebouncer = MessageDebouncer;
-class ReplyScheduler {
+export class ReplyScheduler {
     /**
      * Asynchronously delays execution by `delaySeconds` without blocking the event loop.
      */
@@ -61,5 +57,4 @@ class ReplyScheduler {
         return new Promise((resolve) => setTimeout(resolve, delaySeconds * 1000));
     }
 }
-exports.ReplyScheduler = ReplyScheduler;
 //# sourceMappingURL=messageDebouncer.js.map

@@ -1,14 +1,11 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DashboardRepository = void 0;
-const db_js_1 = require("../db.js");
-const aiSettingsRepository_js_1 = require("./aiSettingsRepository.js");
-const sessionRepository_js_1 = require("./sessionRepository.js");
-class DashboardRepository {
+import { getDatabase } from '../db.js';
+import { AISettingsRepository } from './aiSettingsRepository.js';
+import { SessionRepository } from './sessionRepository.js';
+export class DashboardRepository {
     static async getMetrics(userId) {
-        const db = (0, db_js_1.getDatabase)();
-        const session = await sessionRepository_js_1.SessionRepository.getOrCreateByUserId(userId);
-        const aiSettings = await aiSettingsRepository_js_1.AISettingsRepository.findBySessionId(session.id);
+        const db = getDatabase();
+        const session = await SessionRepository.getOrCreateByUserId(userId);
+        const aiSettings = await AISettingsRepository.findBySessionId(session.id);
         const today = new Date().toISOString().split('T')[0];
         const todayMsgRow = await db.queryOne(`SELECT COUNT(*) as count FROM messages
        WHERE session_id = $1 AND created_at >= $2`, [session.id, today]);
@@ -32,5 +29,4 @@ class DashboardRepository {
         return this.getMetrics(userId);
     }
 }
-exports.DashboardRepository = DashboardRepository;
 //# sourceMappingURL=dashboardRepository.js.map

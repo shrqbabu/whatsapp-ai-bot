@@ -1,12 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.WhatsAppController = void 0;
-const sessionManager_js_1 = require("./sessionManager.js");
-class WhatsAppController {
+import { WhatsAppSessionManager } from './sessionManager.js';
+export class WhatsAppController {
     static async connect(req, res, next) {
         try {
             const userId = req.user.userId;
-            const result = await sessionManager_js_1.WhatsAppSessionManager.connectSession(userId);
+            const result = await WhatsAppSessionManager.connectSession(userId);
             res.status(200).json({
                 success: true,
                 data: result,
@@ -19,7 +16,7 @@ class WhatsAppController {
     static async disconnect(req, res, next) {
         try {
             const userId = req.user.userId;
-            await sessionManager_js_1.WhatsAppSessionManager.disconnectSession(userId);
+            await WhatsAppSessionManager.disconnectSession(userId);
             res.status(200).json({
                 success: true,
                 message: 'WhatsApp session disconnected',
@@ -32,7 +29,7 @@ class WhatsAppController {
     static async destroy(req, res, next) {
         try {
             const userId = req.user.userId;
-            await sessionManager_js_1.WhatsAppSessionManager.destroySession(userId);
+            await WhatsAppSessionManager.destroySession(userId);
             res.status(200).json({
                 success: true,
                 message: 'WhatsApp session unlinked and destroyed',
@@ -45,7 +42,7 @@ class WhatsAppController {
     static async getStatus(req, res, next) {
         try {
             const userId = req.user.userId;
-            const status = await sessionManager_js_1.WhatsAppSessionManager.getSessionStatus(userId);
+            const status = await WhatsAppSessionManager.getSessionStatus(userId);
             res.status(200).json({
                 success: true,
                 data: status,
@@ -58,7 +55,7 @@ class WhatsAppController {
     static async getQRCode(req, res, next) {
         try {
             const userId = req.user.userId;
-            const qr = await sessionManager_js_1.WhatsAppSessionManager.getQRCode(userId);
+            const qr = await WhatsAppSessionManager.getQRCode(userId);
             res.status(200).json({
                 success: true,
                 data: { qr },
@@ -69,5 +66,4 @@ class WhatsAppController {
         }
     }
 }
-exports.WhatsAppController = WhatsAppController;
 //# sourceMappingURL=whatsappController.js.map

@@ -1,11 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConversationsRepository = void 0;
-const node_crypto_1 = require("node:crypto");
-const db_js_1 = require("../db.js");
-class ConversationsRepository {
+import { randomUUID } from 'node:crypto';
+import { getDatabase } from '../db.js';
+export class ConversationsRepository {
     static async list(sessionId, limit = 50, offset = 0) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const rows = await db.query(`SELECT * FROM conversations
        WHERE session_id = $1
        ORDER BY last_message_at DESC NULLS LAST, updated_at DESC
@@ -13,7 +10,7 @@ class ConversationsRepository {
         return rows.map(this.mapEntity);
     }
     static async listByUserId(userId, options = {}) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const limit = options.limit || 20;
         const offset = options.offset || 0;
         let whereClause = 'WHERE user_id = $1';
@@ -32,7 +29,7 @@ class ConversationsRepository {
         };
     }
     static async findById(id, userId) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         let sql = 'SELECT * FROM conversations WHERE id = $1';
         const params = [id];
         if (userId) {
@@ -45,14 +42,14 @@ class ConversationsRepository {
         return this.mapEntity(row);
     }
     static async findByJid(sessionId, chatJid) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const row = await db.queryOne('SELECT * FROM conversations WHERE session_id = $1 AND chat_jid = $2 LIMIT 1', [sessionId, chatJid]);
         if (!row)
             return null;
         return this.mapEntity(row);
     }
     static async upsert(sessionId, userId, chatJid, isGroup, contactId, chatName) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const existing = await this.findByJid(sessionId, chatJid);
         const now = new Date().toISOString();
         if (existing) {
@@ -61,7 +58,7 @@ class ConversationsRepository {
             }
             return (await this.findById(existing.id));
         }
-        const id = (0, node_crypto_1.randomUUID)();
+        const id = randomUUID();
         await db.execute(`INSERT INTO conversations (id, session_id, user_id, contact_id, chat_jid, chat_name, is_group, takeover_active, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, 0, $8, $9)`, [id, sessionId, userId, contactId || null, chatJid, chatName || null, isGroup ? 1 : 0, now, now]);
         return (await this.findById(id));
@@ -70,12 +67,12 @@ class ConversationsRepository {
         return this.upsert(data.sessionId, data.userId, data.chatJid, data.isGroup, data.contactId, data.chatName);
     }
     static async updateLastMessage(id, preview, timestamp) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const now = timestamp || new Date().toISOString();
         await db.execute('UPDATE conversations SET last_message_preview = $1, last_message_at = $2, updated_at = $3 WHERE id = $4', [preview.slice(0, 200), now, now, id]);
     }
     static async setTakeover(id, active, untilOrMinutes) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const now = new Date();
         const nowIso = now.toISOString();
         let takeoverUntil = null;
@@ -114,5 +111,4 @@ class ConversationsRepository {
         };
     }
 }
-exports.ConversationsRepository = ConversationsRepository;
 //# sourceMappingURL=conversationsRepository.js.map

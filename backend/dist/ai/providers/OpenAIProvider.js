@@ -1,31 +1,24 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.OpenAIProvider = void 0;
-const openai_1 = __importDefault(require("openai"));
-const index_js_1 = require("../../config/index.js");
-const logger_js_1 = require("../../utils/logger.js");
-class OpenAIProvider {
-    name = 'OpenAI';
-    client = null;
-    constructor() {
-        if (index_js_1.config.OPENAI_API_KEY) {
-            this.client = new openai_1.default({ apiKey: index_js_1.config.OPENAI_API_KEY });
-        }
-    }
+import OpenAI from 'openai';
+import { config } from '../../config/index.js';
+import { logger } from '../../utils/logger.js';
+export class OpenAIProvider {
+    name = 'OpenAI-Compatible';
     async generateReply(context) {
-        if (!this.client) {
-            // If API key is not configured, generate a fallback intelligent simulation
-            logger_js_1.logger.warn('OPENAI_API_KEY is not configured, returning contextual fallback response');
-            return `Thank you for your message: "${context.incomingMessage}". Our AI assistant is currently running in offline demo mode.`;
+        const effectiveApiKey = context.apiKey || config.OPENAI_API_KEY;
+        const effectiveBaseUrl = context.apiBaseUrl || config.OPENAI_BASE_URL || 'https://api.openai.com/v1';
+        if (!effectiveApiKey) {
+            logger.warn('No OpenAI / third-party API key configured, returning fallback response');
+            return `Thank you for your message: "${context.incomingMessage}". [Notice: Please configure an OpenAI-compatible API key or OPENAI_BASE_URL in settings to activate real-time AI responses].`;
         }
-        const model = context.modelName || index_js_1.config.DEFAULT_AI_MODEL;
+        const model = context.modelName || config.DEFAULT_AI_MODEL || 'gpt-4o-mini';
+        const client = new OpenAI({
+            apiKey: effectiveApiKey,
+            baseURL: effectiveBaseUrl,
+        });
         const messages = [
             {
                 role: 'system',
-                content: context.systemPrompt || index_js_1.config.DEFAULT_SYSTEM_PROMPT,
+                content: context.systemPrompt || config.DEFAULT_SYSTEM_PROMPT,
             },
         ];
         // Add recent conversation history
@@ -41,23 +34,23 @@ class OpenAIProvider {
             content: context.incomingMessage,
         });
         try {
-            const response = await this.client.chat.completions.create({
+            logger.info({ baseURL: effectiveBaseUrl, model, messageCount: messages.length }, `Calling OpenAI-compatible endpoint (${effectiveBaseUrl})`);
+            const response = await client.chat.completions.create({
                 model,
                 messages,
                 temperature: 0.7,
-                max_tokens: 500,
+                max_tokens: 600,
             });
             const reply = response.choices[0]?.message?.content?.trim();
             if (!reply) {
-                throw new Error('Received empty response from OpenAI');
+                throw new Error('Received empty response from OpenAI-compatible provider');
             }
             return reply;
         }
         catch (error) {
-            logger_js_1.logger.error({ error, model }, 'OpenAI API completion failure');
+            logger.error({ error, model, baseURL: effectiveBaseUrl }, 'OpenAI-compatible API completion failure');
             throw error;
         }
     }
 }
-exports.OpenAIProvider = OpenAIProvider;
 //# sourceMappingURL=OpenAIProvider.js.map

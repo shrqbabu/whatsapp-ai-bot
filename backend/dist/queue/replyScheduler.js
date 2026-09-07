@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReplyScheduler = void 0;
-const logger_js_1 = require("../utils/logger.js");
-class ReplyScheduler {
+import { logEvent } from '../utils/logger.js';
+export class ReplyScheduler {
     /**
      * Schedules a task to execute after a specified delay in seconds.
      */
@@ -29,12 +26,11 @@ class ReplyScheduler {
         if (seconds <= 0)
             return;
         if (context) {
-            (0, logger_js_1.logEvent)({ sessionId: context.sessionId, conversationId: context.conversationId, event: 'REPLY_DELAY_WAIT' }, `Waiting ${seconds}s before sending reply`);
+            logEvent({ sessionId: context.sessionId, conversationId: context.conversationId, event: 'REPLY_DELAY_WAIT' }, `Waiting ${seconds}s before sending reply`);
         }
         return new Promise((resolve) => {
             setTimeout(resolve, seconds * 1000);
         });
     }
 }
-exports.ReplyScheduler = ReplyScheduler;
 //# sourceMappingURL=replyScheduler.js.map

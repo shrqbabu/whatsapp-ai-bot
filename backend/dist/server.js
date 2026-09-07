@@ -1,47 +1,42 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const http_1 = __importDefault(require("http"));
-const app_js_1 = require("./app.js");
-const index_js_1 = require("./config/index.js");
-const db_js_1 = require("./database/db.js");
-const logger_js_1 = require("./utils/logger.js");
-const wsServer_js_1 = require("./websocket/wsServer.js");
-const sessionManager_js_1 = require("./whatsapp/sessionManager.js");
+import http from 'http';
+import { createApp } from './app.js';
+import { config } from './config/index.js';
+import { runMigrations } from './database/db.js';
+import { logEvent, logger } from './utils/logger.js';
+import { setupWebSocketServer } from './websocket/wsServer.js';
+import { WhatsAppSessionManager } from './whatsapp/sessionManager.js';
 async function bootstrap() {
     try {
-        logger_js_1.logger.info('Starting WhatsApp AI Multi-Tenant Backend...');
+        logger.info('Starting WhatsApp AI Multi-Tenant Backend...');
         // 1. Initialize Database & Run Migrations
-        await (0, db_js_1.runMigrations)();
+        await runMigrations();
         // 2. Create Express Application
-        const app = (0, app_js_1.createApp)();
+        const app = createApp();
         // 3. Create HTTP Server
-        const server = http_1.default.createServer(app);
+        const server = http.createServer(app);
         // 4. Setup Authenticated WebSocket Server
-        (0, wsServer_js_1.setupWebSocketServer)(server);
+        setupWebSocketServer(server);
         // 5. Start Listening on Port
-        server.listen(index_js_1.config.PORT, () => {
-            logger_js_1.logger.info(`Server running on http://localhost:${index_js_1.config.PORT} [Environment: ${index_js_1.config.NODE_ENV}]`);
-            (0, logger_js_1.logEvent)({ event: 'SERVER_BOOTSTRAP' }, `Server listening on port ${index_js_1.config.PORT}`);
+        server.listen(config.PORT, () => {
+            logger.info(`Server running on http://localhost:${config.PORT} [Environment: ${config.NODE_ENV}]`);
+            logEvent({ event: 'SERVER_BOOTSTRAP' }, `Server listening on port ${config.PORT}`);
             // 6. Restore Active WhatsApp Sessions
-            if (!index_js_1.config.isTest) {
-                sessionManager_js_1.WhatsAppSessionManager.restoreActiveSessions().catch((err) => {
-                    logger_js_1.logger.error({ err }, 'Failed restoring active WhatsApp sessions on startup');
+            if (!config.isTest) {
+                WhatsAppSessionManager.restoreActiveSessions().catch((err) => {
+                    logger.error({ err }, 'Failed restoring active WhatsApp sessions on startup');
                 });
             }
         });
         // Handle Graceful Shutdown
         const shutdown = async (signal) => {
-            logger_js_1.logger.info(`Received ${signal}. Shutting down gracefully...`);
+            logger.info(`Received ${signal}. Shutting down gracefully...`);
             server.close(() => {
-                logger_js_1.logger.info('HTTP server closed.');
+                logger.info('HTTP server closed.');
                 process.exit(0);
             });
             // Force exit if hanging
             setTimeout(() => {
-                logger_js_1.logger.error('Could not close connections in time, forcefully shutting down');
+                logger.error('Could not close connections in time, forcefully shutting down');
                 process.exit(1);
             }, 10000);
         };
@@ -49,7 +44,7 @@ async function bootstrap() {
         process.on('SIGINT', () => shutdown('SIGINT'));
     }
     catch (error) {
-        logger_js_1.logger.fatal({ error }, 'Fatal error during server bootstrap');
+        logger.fatal({ error }, 'Fatal error during server bootstrap');
         process.exit(1);
     }
 }

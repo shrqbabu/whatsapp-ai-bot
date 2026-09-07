@@ -1,12 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const auth_js_1 = require("../middleware/auth.js");
-const tenantGuard_js_1 = require("../middleware/tenantGuard.js");
-const aiController_js_1 = require("./aiController.js");
-const router = (0, express_1.Router)();
-router.use(auth_js_1.authMiddleware, tenantGuard_js_1.tenantGuard);
-router.get('/settings', aiController_js_1.AIController.getSettings);
-router.put('/settings', aiController_js_1.AIController.updateSettings);
-exports.default = router;
+import { Router } from 'express';
+import { authMiddleware } from '../middleware/auth.js';
+import { tenantGuard } from '../middleware/tenantGuard.js';
+import { AIController } from './aiController.js';
+const router = Router();
+router.use(authMiddleware, tenantGuard);
+router.get('/settings', AIController.getSettings);
+router.put('/settings', AIController.updateSettings);
+export default router;
 //# sourceMappingURL=aiRoutes.js.map

@@ -1,17 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BusinessHoursRepository = void 0;
-const luxon_1 = require("luxon");
-const node_crypto_1 = require("node:crypto");
-const db_js_1 = require("../db.js");
-class BusinessHoursRepository {
+import { DateTime } from 'luxon';
+import { randomUUID } from 'node:crypto';
+import { getDatabase } from '../db.js';
+export class BusinessHoursRepository {
     static async listBySessionId(sessionId) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const rows = await db.query('SELECT * FROM business_hours WHERE session_id = $1 ORDER BY day_of_week ASC', [sessionId]);
         return rows.map(this.mapEntity);
     }
     static async updateSchedule(sessionId, userId, schedules) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const now = new Date().toISOString();
         for (const item of schedules) {
             const existing = await db.queryOne('SELECT id FROM business_hours WHERE session_id = $1 AND day_of_week = $2', [sessionId, item.day_of_week]);
@@ -37,7 +34,7 @@ class BusinessHoursRepository {
             else {
                 await db.execute(`INSERT INTO business_hours (id, session_id, user_id, day_of_week, enabled, start_time, end_time, timezone, outside_hours_action, outside_hours_message, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, [
-                    (0, node_crypto_1.randomUUID)(),
+                    randomUUID(),
                     sessionId,
                     userId,
                     item.day_of_week,
@@ -61,9 +58,9 @@ class BusinessHoursRepository {
         }
         const firstRule = schedules[0];
         const timezone = firstRule?.timezone || 'UTC';
-        let localTime = luxon_1.DateTime.fromJSDate(targetDate).setZone(timezone);
+        let localTime = DateTime.fromJSDate(targetDate).setZone(timezone);
         if (!localTime.isValid) {
-            localTime = luxon_1.DateTime.fromJSDate(targetDate).setZone('UTC');
+            localTime = DateTime.fromJSDate(targetDate).setZone('UTC');
         }
         const dayOfWeek = localTime.weekday === 7 ? 0 : localTime.weekday;
         const currentDaySchedule = schedules.find((s) => s.day_of_week === dayOfWeek);
@@ -95,5 +92,4 @@ class BusinessHoursRepository {
         };
     }
 }
-exports.BusinessHoursRepository = BusinessHoursRepository;
 //# sourceMappingURL=businessHoursRepository.js.map

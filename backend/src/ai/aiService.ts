@@ -53,6 +53,8 @@ export class AIService {
           incomingMessage: incomingText,
           senderName,
           modelName: aiSettings.model,
+          apiKey: aiSettings.api_key,
+          apiBaseUrl: aiSettings.api_base_url,
         });
       } catch (error) {
         logError(

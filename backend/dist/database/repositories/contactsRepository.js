@@ -1,11 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContactsRepository = void 0;
-const node_crypto_1 = require("node:crypto");
-const db_js_1 = require("../db.js");
-class ContactsRepository {
+import { randomUUID } from 'node:crypto';
+import { getDatabase } from '../db.js';
+export class ContactsRepository {
     static async listContacts(sessionId) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const rows = await db.query(`SELECT c.*, COALESCE(cr.ai_enabled, 1) as ai_enabled, COALESCE(cr.blocked, 0) as blocked
        FROM contacts c
        LEFT JOIN contact_rules cr ON c.id = cr.contact_id
@@ -14,7 +11,7 @@ class ContactsRepository {
         return rows.map(this.mapContact);
     }
     static async listByUserId(userId) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const rows = await db.query(`SELECT c.*, COALESCE(cr.ai_enabled, 1) as ai_enabled, COALESCE(cr.blocked, 0) as blocked
        FROM contacts c
        LEFT JOIN contact_rules cr ON c.id = cr.contact_id
@@ -23,7 +20,7 @@ class ContactsRepository {
         return rows.map(this.mapContact);
     }
     static async findByJid(sessionId, waJid) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const row = await db.queryOne(`SELECT c.*, COALESCE(cr.ai_enabled, 1) as ai_enabled, COALESCE(cr.blocked, 0) as blocked
        FROM contacts c
        LEFT JOIN contact_rules cr ON c.id = cr.contact_id
@@ -35,7 +32,7 @@ class ContactsRepository {
         return this.findByJid(sessionId, waJid);
     }
     static async findById(id) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const row = await db.queryOne(`SELECT c.*, COALESCE(cr.ai_enabled, 1) as ai_enabled, COALESCE(cr.blocked, 0) as blocked
        FROM contacts c
        LEFT JOIN contact_rules cr ON c.id = cr.contact_id
@@ -44,7 +41,7 @@ class ContactsRepository {
         return row ? this.mapContact(row) : null;
     }
     static async upsertContact(params) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const existing = await this.findByJid(params.sessionId, params.waJid);
         const now = new Date().toISOString();
         if (existing) {
@@ -53,7 +50,7 @@ class ContactsRepository {
             }
             return (await this.findById(existing.id));
         }
-        const id = (0, node_crypto_1.randomUUID)();
+        const id = randomUUID();
         await db.execute(`INSERT INTO contacts (id, session_id, user_id, wa_jid, display_name, phone_number, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, [
             id,
@@ -66,13 +63,13 @@ class ContactsRepository {
             now,
         ]);
         // Create default contact rule
-        const ruleId = (0, node_crypto_1.randomUUID)();
+        const ruleId = randomUUID();
         await db.execute(`INSERT INTO contact_rules (id, session_id, user_id, contact_id, ai_enabled, blocked, created_at, updated_at)
        VALUES ($1, $2, $3, $4, 1, 0, $5, $6)`, [ruleId, params.sessionId, params.userId, id, now, now]);
         return (await this.findById(id));
     }
     static async updateContactRules(contactId, sessionId, userId, rules) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const now = new Date().toISOString();
         const existing = await this.findById(contactId);
         if (!existing) {
@@ -86,7 +83,7 @@ class ContactsRepository {
         }
         else {
             await db.execute(`INSERT INTO contact_rules (id, session_id, user_id, contact_id, ai_enabled, blocked, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, [(0, node_crypto_1.randomUUID)(), sessionId, userId, contactId, aiEnabled, blocked, now, now]);
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, [randomUUID(), sessionId, userId, contactId, aiEnabled, blocked, now, now]);
         }
         return (await this.findById(contactId));
     }
@@ -97,7 +94,7 @@ class ContactsRepository {
         return this.updateContactRules(contactId, existing.session_id, userId, rules);
     }
     static async getGroupRule(sessionId, groupJid) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const row = await db.queryOne('SELECT * FROM group_rules WHERE session_id = $1 AND group_jid = $2 LIMIT 1', [sessionId, groupJid]);
         if (!row)
             return null;
@@ -108,7 +105,7 @@ class ContactsRepository {
         };
     }
     static async upsertGroupRule(sessionId, userId, groupJid, rules) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const now = new Date().toISOString();
         const existing = await this.getGroupRule(sessionId, groupJid);
         if (existing) {
@@ -119,7 +116,7 @@ class ContactsRepository {
         else {
             await db.execute(`INSERT INTO group_rules (id, session_id, user_id, group_jid, ai_enabled, reply_only_when_mentioned, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, [
-                (0, node_crypto_1.randomUUID)(),
+                randomUUID(),
                 sessionId,
                 userId,
                 groupJid,
@@ -142,5 +139,4 @@ class ContactsRepository {
         };
     }
 }
-exports.ContactsRepository = ContactsRepository;
 //# sourceMappingURL=contactsRepository.js.map

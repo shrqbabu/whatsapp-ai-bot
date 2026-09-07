@@ -5,6 +5,8 @@ export interface AISettingsEntity {
     enabled: boolean;
     system_prompt: string;
     model: string;
+    api_base_url: string | null;
+    api_key: string | null;
     reply_delay: number;
     debounce_delay: number;
     groups_enabled: boolean;
@@ -20,6 +22,8 @@ export declare class AISettingsRepository {
         enabled: boolean;
         system_prompt: string;
         model: string;
+        api_base_url: string | null;
+        api_key: string | null;
         reply_delay: number;
         debounce_delay: number;
         groups_enabled: boolean;

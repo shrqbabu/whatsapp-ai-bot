@@ -179,6 +179,8 @@ export async function runMigrations(): Promise<void> {
       enabled INTEGER NOT NULL DEFAULT 1,
       system_prompt TEXT NOT NULL,
       model TEXT NOT NULL DEFAULT 'gpt-4o-mini',
+      api_base_url TEXT DEFAULT NULL,
+      api_key TEXT DEFAULT NULL,
       reply_delay INTEGER NOT NULL DEFAULT 3,
       debounce_delay INTEGER NOT NULL DEFAULT 2,
       groups_enabled INTEGER NOT NULL DEFAULT 0,
@@ -302,5 +304,18 @@ export async function runMigrations(): Promise<void> {
   `;
 
   await db.exec(schemaSql);
+
+  // Safely alter existing database if columns are missing
+  try {
+    await db.exec('ALTER TABLE ai_settings ADD COLUMN api_base_url TEXT DEFAULT NULL;');
+  } catch (e) {
+    // Column may already exist
+  }
+  try {
+    await db.exec('ALTER TABLE ai_settings ADD COLUMN api_key TEXT DEFAULT NULL;');
+  } catch (e) {
+    // Column may already exist
+  }
+
   logger.info('Database schema initialized successfully');
 }

@@ -1,11 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MessagesRepository = void 0;
-const node_crypto_1 = require("node:crypto");
-const db_js_1 = require("../db.js");
-class MessagesRepository {
+import { randomUUID } from 'node:crypto';
+import { getDatabase } from '../db.js';
+export class MessagesRepository {
     static async existsByWaId(sessionId, waMessageId) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const row = await db.queryOne('SELECT COUNT(*) as count FROM messages WHERE session_id = $1 AND wa_message_id = $2', [sessionId, waMessageId]);
         return Number(row?.count || 0) > 0;
     }
@@ -13,8 +10,8 @@ class MessagesRepository {
         return this.existsByWaId(sessionId, waMessageId);
     }
     static async create(data) {
-        const db = (0, db_js_1.getDatabase)();
-        const id = (0, node_crypto_1.randomUUID)();
+        const db = getDatabase();
+        const id = randomUUID();
         const convId = data.conversation_id || data.conversationId;
         const sessId = data.session_id || data.sessionId;
         const uId = data.user_id || data.userId;
@@ -43,7 +40,7 @@ class MessagesRepository {
         return this.mapEntity(created);
     }
     static async listByConversation(conversationId, limit = 50, offset = 0) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const rows = await db.query(`SELECT * FROM messages
        WHERE conversation_id = $1
        ORDER BY created_at DESC
@@ -51,7 +48,7 @@ class MessagesRepository {
         return rows.map(this.mapEntity).reverse(); // Return in chronological order
     }
     static async getRecentContext(conversationId, maxMessages = 10) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const rows = await db.query(`SELECT * FROM messages
        WHERE conversation_id = $1 AND message_type = 'text' AND text IS NOT NULL
        ORDER BY created_at DESC
@@ -59,14 +56,14 @@ class MessagesRepository {
         return rows.map(this.mapEntity).reverse();
     }
     static async countTodayMessages(sessionId) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const today = new Date().toISOString().split('T')[0];
         const row = await db.queryOne(`SELECT COUNT(*) as count FROM messages
        WHERE session_id = $1 AND created_at >= $2`, [sessionId, today]);
         return Number(row?.count || 0);
     }
     static async countTodayAiReplies(sessionId) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const today = new Date().toISOString().split('T')[0];
         const row = await db.queryOne(`SELECT COUNT(*) as count FROM messages
        WHERE session_id = $1 AND ai_generated = 1 AND created_at >= $2`, [sessionId, today]);
@@ -80,5 +77,4 @@ class MessagesRepository {
         };
     }
 }
-exports.MessagesRepository = MessagesRepository;
 //# sourceMappingURL=messagesRepository.js.map

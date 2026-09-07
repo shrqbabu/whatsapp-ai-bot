@@ -1,16 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MessageHandler = void 0;
-const aiSettingsRepository_js_1 = require("../database/repositories/aiSettingsRepository.js");
-const contactsRepository_js_1 = require("../database/repositories/contactsRepository.js");
-const conversationsRepository_js_1 = require("../database/repositories/conversationsRepository.js");
-const messagesRepository_js_1 = require("../database/repositories/messagesRepository.js");
-const aiService_js_1 = require("../ai/aiService.js");
-const rulesEngine_js_1 = require("../ai/rulesEngine.js");
-const messageDebouncer_js_1 = require("../queue/messageDebouncer.js");
-const logger_js_1 = require("../utils/logger.js");
-const wsEmitter_js_1 = require("../websocket/wsEmitter.js");
-class MessageHandler {
+import { AISettingsRepository } from '../database/repositories/aiSettingsRepository.js';
+import { ContactsRepository } from '../database/repositories/contactsRepository.js';
+import { ConversationsRepository } from '../database/repositories/conversationsRepository.js';
+import { MessagesRepository } from '../database/repositories/messagesRepository.js';
+import { AIService } from '../ai/aiService.js';
+import { RulesEngine } from '../ai/rulesEngine.js';
+import { MessageDebouncer } from '../queue/messageDebouncer.js';
+import { logEvent, logger } from '../utils/logger.js';
+import { wsEmitter } from '../websocket/wsEmitter.js';
+export class MessageHandler {
     static async handleIncomingUpsert(userId, sessionId, upsert, 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     sock) {
@@ -21,7 +18,7 @@ class MessageHandler {
                 await this.processSingleMessage(userId, sessionId, msg);
             }
             catch (error) {
-                logger_js_1.logger.error({ userId, sessionId, error }, 'Error processing message in upsert loop');
+                logger.error({ userId, sessionId, error }, 'Error processing message in upsert loop');
             }
         }
     }
@@ -45,22 +42,22 @@ class MessageHandler {
         // 3. Extract text and message type
         const { text, messageType } = this.extractMessageContent(msg);
         // 4. Deduplication Check
-        const isDuplicate = await messagesRepository_js_1.MessagesRepository.isDuplicate(sessionId, waMessageId);
+        const isDuplicate = await MessagesRepository.isDuplicate(sessionId, waMessageId);
         if (isDuplicate) {
-            (0, logger_js_1.logEvent)({ userId, sessionId, waMessageId, event: 'DUPLICATE_MESSAGE_IGNORED' }, 'Duplicate WhatsApp message');
+            logEvent({ userId, sessionId, waMessageId, event: 'DUPLICATE_MESSAGE_IGNORED' }, 'Duplicate WhatsApp message');
             return;
         }
-        (0, logger_js_1.logEvent)({ userId, sessionId, chatJid, waMessageId, event: 'MESSAGE_RECEIVED' }, `Incoming WhatsApp message from ${senderJid}: "${(text || '').slice(0, 40)}"`);
+        logEvent({ userId, sessionId, chatJid, waMessageId, event: 'MESSAGE_RECEIVED' }, `Incoming WhatsApp message from ${senderJid}: "${(text || '').slice(0, 40)}"`);
         // 5. Upsert Contact & Conversation
         const senderName = msg.pushName || senderJid.split('@')[0];
-        const contact = await contactsRepository_js_1.ContactsRepository.upsertContact({
+        const contact = await ContactsRepository.upsertContact({
             sessionId,
             userId,
             waJid: senderJid,
             displayName: senderName,
             phoneNumber: senderJid.split('@')[0],
         });
-        const conversation = await conversationsRepository_js_1.ConversationsRepository.getOrCreateConversation({
+        const conversation = await ConversationsRepository.getOrCreateConversation({
             sessionId,
             userId,
             chatJid,
@@ -70,7 +67,7 @@ class MessageHandler {
         });
         // 6. Persist incoming message
         const now = new Date().toISOString();
-        const savedMessage = await messagesRepository_js_1.MessagesRepository.create({
+        const savedMessage = await MessagesRepository.create({
             conversation_id: conversation.id,
             session_id: sessionId,
             user_id: userId,
@@ -85,9 +82,9 @@ class MessageHandler {
             created_at: now,
         });
         // Update conversation preview and timestamp
-        await conversationsRepository_js_1.ConversationsRepository.updateLastMessage(conversation.id, text || `[${messageType}]`, now);
+        await ConversationsRepository.updateLastMessage(conversation.id, text || `[${messageType}]`, now);
         // 7. Notify Android App over Authenticated WebSocket
-        wsEmitter_js_1.wsEmitter.sendToUser(userId, 'message.received', {
+        wsEmitter.sendToUser(userId, 'message.received', {
             message: savedMessage,
             conversation: {
                 ...conversation,
@@ -96,10 +93,10 @@ class MessageHandler {
             },
         });
         // 8. Evaluate Rules Engine
-        const aiSettings = await aiSettingsRepository_js_1.AISettingsRepository.findBySessionId(sessionId);
+        const aiSettings = await AISettingsRepository.findBySessionId(sessionId);
         if (!aiSettings)
             return;
-        const evaluation = await rulesEngine_js_1.RulesEngine.evaluate({
+        const evaluation = await RulesEngine.evaluate({
             sessionId,
             isFromMe,
             text,
@@ -109,12 +106,12 @@ class MessageHandler {
             aiSettings,
         });
         if (!evaluation.shouldReply) {
-            (0, logger_js_1.logEvent)({ userId, sessionId, conversationId: conversation.id, event: 'AI_SKIPPED' }, `AI reply skipped: ${evaluation.reason}`);
+            logEvent({ userId, sessionId, conversationId: conversation.id, event: 'AI_SKIPPED' }, `AI reply skipped: ${evaluation.reason}`);
             return;
         }
         // 9. If Outside Business Hours message is configured
         if (evaluation.outsideHoursMessage) {
-            await aiService_js_1.AIService.processAutoReply({
+            await AIService.processAutoReply({
                 userId,
                 sessionId,
                 conversation,
@@ -126,7 +123,7 @@ class MessageHandler {
             return;
         }
         // 10. Intelligent Debounce for burst messages
-        messageDebouncer_js_1.MessageDebouncer.enqueue({
+        MessageDebouncer.enqueue({
             sessionId,
             userId,
             conversationId: conversation.id,
@@ -135,7 +132,7 @@ class MessageHandler {
             text: text || '',
             debounceSeconds: aiSettings.debounce_delay,
             onExecute: async (combinedText) => {
-                await aiService_js_1.AIService.processAutoReply({
+                await AIService.processAutoReply({
                     userId,
                     sessionId,
                     conversation,
@@ -180,5 +177,4 @@ class MessageHandler {
         return { text: null, messageType: 'unsupported' };
     }
 }
-exports.MessageHandler = MessageHandler;
 //# sourceMappingURL=messageHandler.js.map

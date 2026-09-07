@@ -64,13 +64,15 @@ data class QrResponseData(
     @SerializedName("qr") val qr: String?
 )
 
-// AI Settings Models
+// AI Settings Models (OpenAI-Compatible & Custom Provider Support)
 data class AISettingsDTO(
     @SerializedName("id") val id: String?,
     @SerializedName("session_id") val sessionId: String?,
     @SerializedName("enabled") val enabled: Boolean,
     @SerializedName("system_prompt") val systemPrompt: String,
     @SerializedName("model") val model: String,
+    @SerializedName("api_base_url") val apiBaseUrl: String?,
+    @SerializedName("api_key") val apiKey: String?,
     @SerializedName("reply_delay") val replyDelay: Int,
     @SerializedName("debounce_delay") val debounceDelay: Int,
     @SerializedName("groups_enabled") val groupsEnabled: Boolean,
@@ -82,6 +84,8 @@ data class UpdateAISettingsRequest(
     @SerializedName("enabled") val enabled: Boolean? = null,
     @SerializedName("system_prompt") val systemPrompt: String? = null,
     @SerializedName("model") val model: String? = null,
+    @SerializedName("api_base_url") val apiBaseUrl: String? = null,
+    @SerializedName("api_key") val apiKey: String? = null,
     @SerializedName("reply_delay") val replyDelay: Int? = null,
     @SerializedName("debounce_delay") val debounceDelay: Int? = null,
     @SerializedName("groups_enabled") val groupsEnabled: Boolean? = null,

@@ -1,22 +1,19 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContactsController = exports.updateGroupRulesSchema = exports.updateContactRulesSchema = void 0;
-const zod_1 = require("zod");
-const contactsRepository_js_1 = require("../database/repositories/contactsRepository.js");
-const sessionRepository_js_1 = require("../database/repositories/sessionRepository.js");
-exports.updateContactRulesSchema = zod_1.z.object({
-    ai_enabled: zod_1.z.boolean().optional(),
-    blocked: zod_1.z.boolean().optional(),
+import { z } from 'zod';
+import { ContactsRepository } from '../database/repositories/contactsRepository.js';
+import { SessionRepository } from '../database/repositories/sessionRepository.js';
+export const updateContactRulesSchema = z.object({
+    ai_enabled: z.boolean().optional(),
+    blocked: z.boolean().optional(),
 });
-exports.updateGroupRulesSchema = zod_1.z.object({
-    ai_enabled: zod_1.z.boolean().optional(),
-    reply_only_when_mentioned: zod_1.z.boolean().optional(),
+export const updateGroupRulesSchema = z.object({
+    ai_enabled: z.boolean().optional(),
+    reply_only_when_mentioned: z.boolean().optional(),
 });
-class ContactsController {
+export class ContactsController {
     static async listContacts(req, res, next) {
         try {
             const userId = req.user.userId;
-            const contacts = await contactsRepository_js_1.ContactsRepository.listByUserId(userId);
+            const contacts = await ContactsRepository.listByUserId(userId);
             res.status(200).json({
                 success: true,
                 data: contacts,
@@ -30,8 +27,8 @@ class ContactsController {
         try {
             const userId = req.user.userId;
             const contactId = req.params.id;
-            const data = exports.updateContactRulesSchema.parse(req.body);
-            const updated = await contactsRepository_js_1.ContactsRepository.updateRule(userId, contactId, data);
+            const data = updateContactRulesSchema.parse(req.body);
+            const updated = await ContactsRepository.updateRule(userId, contactId, data);
             res.status(200).json({
                 success: true,
                 data: updated,
@@ -45,8 +42,8 @@ class ContactsController {
         try {
             const userId = req.user.userId;
             const groupJid = req.params.jid;
-            const session = await sessionRepository_js_1.SessionRepository.getOrCreateByUserId(userId);
-            const rule = await contactsRepository_js_1.ContactsRepository.getGroupRule(session.id, groupJid);
+            const session = await SessionRepository.getOrCreateByUserId(userId);
+            const rule = await ContactsRepository.getGroupRule(session.id, groupJid);
             res.status(200).json({
                 success: true,
                 data: rule || {
@@ -66,9 +63,9 @@ class ContactsController {
         try {
             const userId = req.user.userId;
             const groupJid = req.params.jid;
-            const session = await sessionRepository_js_1.SessionRepository.getOrCreateByUserId(userId);
-            const data = exports.updateGroupRulesSchema.parse(req.body);
-            const rule = await contactsRepository_js_1.ContactsRepository.setGroupRule(userId, session.id, groupJid, data);
+            const session = await SessionRepository.getOrCreateByUserId(userId);
+            const data = updateGroupRulesSchema.parse(req.body);
+            const rule = await ContactsRepository.setGroupRule(userId, session.id, groupJid, data);
             res.status(200).json({
                 success: true,
                 data: rule,
@@ -79,5 +76,4 @@ class ContactsController {
         }
     }
 }
-exports.ContactsController = ContactsController;
 //# sourceMappingURL=contactsController.js.map

@@ -1,24 +1,21 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AISettingsRepository = void 0;
-const db_js_1 = require("../db.js");
-class AISettingsRepository {
+import { getDatabase } from '../db.js';
+export class AISettingsRepository {
     static async findBySessionId(sessionId) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const row = await db.queryOne('SELECT * FROM ai_settings WHERE session_id = $1 LIMIT 1', [sessionId]);
         if (!row)
             return null;
         return this.mapEntity(row);
     }
     static async findByUserId(userId) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const row = await db.queryOne('SELECT * FROM ai_settings WHERE user_id = $1 LIMIT 1', [userId]);
         if (!row)
             return null;
         return this.mapEntity(row);
     }
     static async update(sessionId, data) {
-        const db = (0, db_js_1.getDatabase)();
+        const db = getDatabase();
         const existing = await this.findBySessionId(sessionId);
         const now = new Date().toISOString();
         if (!existing) {
@@ -28,6 +25,8 @@ class AISettingsRepository {
             enabled: data.enabled !== undefined ? (data.enabled ? 1 : 0) : existing.enabled ? 1 : 0,
             system_prompt: data.system_prompt !== undefined ? data.system_prompt : existing.system_prompt,
             model: data.model !== undefined ? data.model : existing.model,
+            api_base_url: data.api_base_url !== undefined ? data.api_base_url : existing.api_base_url,
+            api_key: data.api_key !== undefined ? data.api_key : existing.api_key,
             reply_delay: data.reply_delay !== undefined ? data.reply_delay : existing.reply_delay,
             debounce_delay: data.debounce_delay !== undefined ? data.debounce_delay : existing.debounce_delay,
             groups_enabled: data.groups_enabled !== undefined ? (data.groups_enabled ? 1 : 0) : existing.groups_enabled ? 1 : 0,
@@ -35,12 +34,15 @@ class AISettingsRepository {
             business_hours_enabled: data.business_hours_enabled !== undefined ? (data.business_hours_enabled ? 1 : 0) : existing.business_hours_enabled ? 1 : 0,
         };
         await db.execute(`UPDATE ai_settings
-       SET enabled = $1, system_prompt = $2, model = $3, reply_delay = $4, debounce_delay = $5,
-           groups_enabled = $6, reply_only_when_mentioned = $7, business_hours_enabled = $8, updated_at = $9
-       WHERE session_id = $10`, [
+       SET enabled = $1, system_prompt = $2, model = $3, api_base_url = $4, api_key = $5,
+           reply_delay = $6, debounce_delay = $7, groups_enabled = $8,
+           reply_only_when_mentioned = $9, business_hours_enabled = $10, updated_at = $11
+       WHERE session_id = $12`, [
             updated.enabled,
             updated.system_prompt,
             updated.model,
+            updated.api_base_url,
+            updated.api_key,
             updated.reply_delay,
             updated.debounce_delay,
             updated.groups_enabled,
@@ -55,6 +57,8 @@ class AISettingsRepository {
     static mapEntity(row) {
         return {
             ...row,
+            api_base_url: row.api_base_url || null,
+            api_key: row.api_key || null,
             enabled: Boolean(row.enabled),
             groups_enabled: Boolean(row.groups_enabled),
             reply_only_when_mentioned: Boolean(row.reply_only_when_mentioned),
@@ -62,5 +66,4 @@ class AISettingsRepository {
         };
     }
 }
-exports.AISettingsRepository = AISettingsRepository;
 //# sourceMappingURL=aiSettingsRepository.js.map
