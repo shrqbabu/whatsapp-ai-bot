@@ -14,7 +14,6 @@ local.properties
 .DS_Store
 
 # Node.js backend
-node_modules/
 dist/
 data/*.db
 data/*.db-journal
