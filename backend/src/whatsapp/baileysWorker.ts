@@ -190,7 +190,19 @@ export class BaileysWorker {
         }
       });
 
-      sock.ev.on('creds.update', saveCreds);
+      sock.ev.on('creds.update', async () => {
+        try {
+          if (this.isExplicitlyClosed || this.currentStatus === 'LOGGED_OUT') {
+            return;
+          }
+          if (!fs.existsSync(this.sessionDir)) {
+            fs.mkdirSync(this.sessionDir, { recursive: true });
+          }
+          await saveCreds();
+        } catch (credsErr) {
+          logger.warn({ err: credsErr, sessionDir: this.sessionDir }, 'Failed to save creds or session directory was removed');
+        }
+      });
 
       sock.ev.on('messages.upsert', async (upsert) => {
         try {
@@ -244,6 +256,16 @@ export class BaileysWorker {
 
   private async cleanupAuth(): Promise<void> {
     try {
+      this.isExplicitlyClosed = true;
+      if (this.socket) {
+        try {
+          this.socket.ev.removeAllListeners('creds.update');
+          this.socket.ev.removeAllListeners('messages.upsert');
+          this.socket.ev.removeAllListeners('connection.update');
+        } catch {
+          // Ignore listener removal errors
+        }
+      }
       if (fs.existsSync(this.sessionDir)) {
         fs.rmSync(this.sessionDir, { recursive: true, force: true });
       }

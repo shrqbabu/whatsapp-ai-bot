@@ -54,6 +54,14 @@ async function bootstrap() {
 
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
+
+    process.on('unhandledRejection', (reason, promise) => {
+      logger.error({ reason, promise }, 'Unhandled Rejection at Promise');
+    });
+
+    process.on('uncaughtException', (error) => {
+      logger.error({ error }, 'Uncaught Exception thrown');
+    });
   } catch (error) {
     logger.fatal({ error }, 'Fatal error during server bootstrap');
     process.exit(1);
