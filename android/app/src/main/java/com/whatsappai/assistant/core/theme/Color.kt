@@ -48,3 +48,5 @@ val DarkBackground = Color(0xFF111B21)
 val DarkSurface = Color(0xFF202C33)
 val DarkOnSurface = Color(0xFFE9EDEF)
 val DarkOutline = Color(0xFF2A3942)
+
+val ErrorRed = Color(0xFFEF4444)

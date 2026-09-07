@@ -87,7 +87,7 @@ class ContactsViewModel(
             )
 
             val request = UpdateContactRuleRequest(aiEnabled = aiEnabled, blocked = blocked)
-            when (val result = contactsRepository.updateContactRules(contactId, request)) {
+            when (val result = contactsRepository.updateContactRule(contactId, request)) {
                 is NetworkResult.Success -> {
                     _uiState.value = _uiState.value.copy(
                         contacts = _uiState.value.contacts.map {

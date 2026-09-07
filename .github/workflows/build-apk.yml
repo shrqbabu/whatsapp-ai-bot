@@ -65,8 +65,8 @@ jobs:
 
           mkdir -p gradle/wrapper
           if [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
-            echo "Downloading gradle-wrapper.jar..."
-            curl -sLo gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.10.2/gradle/wrapper/gradle-wrapper.jar || true
+            echo "Generating gradle wrapper..."
+            gradle wrapper --gradle-version 8.10.2
           fi
           if [ -f "gradlew" ]; then
             chmod +x gradlew

@@ -1,6 +1,7 @@
 package com.whatsappai.assistant.feature.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whatsappai.assistant.core.network.NetworkResult
+import com.whatsappai.assistant.core.network.WebSocketManager
 import com.whatsappai.assistant.core.storage.TokenManager
 import com.whatsappai.assistant.core.theme.ErrorRed
 import com.whatsappai.assistant.core.theme.WhatsAppGreenDark
@@ -44,7 +46,8 @@ sealed class ProfileUiState {
 class ProfileViewModel(
     private val authRepository: AuthRepository,
     private val whatsAppRepository: WhatsAppRepository,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val webSocketManager: WebSocketManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)

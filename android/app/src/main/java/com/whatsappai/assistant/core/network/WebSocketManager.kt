@@ -21,11 +21,19 @@ import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import java.util.concurrent.TimeUnit
 
-data class WsEvent(
-    val event: String,
-    val rawData: JsonObject,
-    val timestamp: String?
-)
+sealed class WsEvent {
+    data class StatusUpdate(val status: String, val phoneNumber: String?) : WsEvent()
+    data class Connected(val phoneNumber: String?) : WsEvent()
+    object Disconnected : WsEvent()
+    object Reconnecting : WsEvent()
+    object LoggedOut : WsEvent()
+    data class QrUpdate(val qr: String) : WsEvent()
+    data class MessageReceived(val conversationId: String?, val rawData: JsonObject) : WsEvent()
+    data class MessageSent(val conversationId: String?, val rawData: JsonObject) : WsEvent()
+    data class AiReplied(val conversationId: String?, val rawData: JsonObject) : WsEvent()
+    data class TakeoverChanged(val conversationId: String, val active: Boolean) : WsEvent()
+    data class Unknown(val event: String, val rawData: JsonObject) : WsEvent()
+}
 
 enum class WsConnectionState {
     DISCONNECTED,
@@ -52,6 +60,9 @@ class WebSocketManager(
 
     private val _eventFlow = MutableSharedFlow<WsEvent>(extraBufferCapacity = 64)
     val eventFlow: SharedFlow<WsEvent> = _eventFlow.asSharedFlow()
+
+    /** Alias used by feature screens */
+    val events: SharedFlow<WsEvent> get() = eventFlow
 
     fun connect() {
         val token = tokenManager.getToken()
@@ -83,12 +94,13 @@ class WebSocketManager(
             override fun onMessage(webSocket: WebSocket, text: String) {
                 try {
                     val json = gson.fromJson(text, JsonObject::class.java)
-                    val event = json.get("event")?.asString ?: "unknown"
+                    val eventName = json.get("event")?.asString ?: "unknown"
                     val data = json.getAsJsonObject("data") ?: JsonObject()
-                    val timestamp = json.get("timestamp")?.asString
+
+                    val wsEvent = parseEvent(eventName, data)
 
                     scope.launch {
-                        _eventFlow.emit(WsEvent(event, data, timestamp))
+                        _eventFlow.emit(wsEvent)
                     }
                 } catch (e: Exception) {
                     // Ignore parse errors
@@ -109,6 +121,45 @@ class WebSocketManager(
                 }
             }
         })
+    }
+
+    private fun parseEvent(eventName: String, data: JsonObject): WsEvent {
+        return when (eventName) {
+            "status_update", "whatsapp:status" -> {
+                val status = data.get("status")?.asString ?: "UNKNOWN"
+                val phone = data.get("phoneNumber")?.asString
+                WsEvent.StatusUpdate(status, phone)
+            }
+            "connected", "whatsapp:connected" -> {
+                val phone = data.get("phoneNumber")?.asString
+                WsEvent.Connected(phone)
+            }
+            "disconnected", "whatsapp:disconnected" -> WsEvent.Disconnected
+            "reconnecting", "whatsapp:reconnecting" -> WsEvent.Reconnecting
+            "logged_out", "whatsapp:logged_out" -> WsEvent.LoggedOut
+            "qr", "qr_update", "whatsapp:qr" -> {
+                val qr = data.get("qr")?.asString ?: ""
+                WsEvent.QrUpdate(qr)
+            }
+            "message_received", "message:received" -> {
+                val convId = data.get("conversationId")?.asString ?: data.get("conversation_id")?.asString
+                WsEvent.MessageReceived(convId, data)
+            }
+            "message_sent", "message:sent" -> {
+                val convId = data.get("conversationId")?.asString ?: data.get("conversation_id")?.asString
+                WsEvent.MessageSent(convId, data)
+            }
+            "ai_replied", "message:ai_replied" -> {
+                val convId = data.get("conversationId")?.asString ?: data.get("conversation_id")?.asString
+                WsEvent.AiReplied(convId, data)
+            }
+            "takeover_changed", "takeover:changed" -> {
+                val convId = data.get("conversationId")?.asString ?: data.get("conversation_id")?.asString ?: ""
+                val active = data.get("active")?.asBoolean ?: false
+                WsEvent.TakeoverChanged(convId, active)
+            }
+            else -> WsEvent.Unknown(eventName, data)
+        }
     }
 
     private fun scheduleReconnect() {

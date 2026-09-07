@@ -520,7 +520,7 @@ fun MessageBubble(message: MessageDTO) {
                 Spacer(modifier = Modifier.height(2.dp))
 
                 Text(
-                    text = message.createdAt.substringAfter("T").substringBefore(".").take(5),
+                    text = (message.createdAt ?: "").substringAfter("T").substringBefore(".").take(5),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray,
                     modifier = Modifier.align(Alignment.End)

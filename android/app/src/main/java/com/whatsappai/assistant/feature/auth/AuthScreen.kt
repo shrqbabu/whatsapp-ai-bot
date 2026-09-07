@@ -27,7 +27,8 @@ import com.whatsappai.assistant.core.network.NetworkResult
 import com.whatsappai.assistant.core.storage.TokenManager
 import com.whatsappai.assistant.core.theme.WhatsAppGreenPrimary
 import com.whatsappai.assistant.core.ui.components.ErrorBanner
-import com.whatsappai.assistant.data.model.AuthResponseData
+import com.whatsappai.assistant.data.model.LoginRequest
+import com.whatsappai.assistant.data.model.RegisterRequest
 import com.whatsappai.assistant.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,7 +57,8 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
-            when (val result = authRepository.login(email.trim(), pass)) {
+            val request = LoginRequest(email = email.trim(), password = pass)
+            when (val result = authRepository.login(request)) {
                 is NetworkResult.Success -> {
                     _uiState.value = AuthUiState(isSuccess = true)
                 }
@@ -76,7 +78,8 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
-            when (val result = authRepository.register(email.trim(), pass, fullName.trim())) {
+            val request = RegisterRequest(email = email.trim(), password = pass, fullName = fullName.trim())
+            when (val result = authRepository.register(request)) {
                 is NetworkResult.Success -> {
                     _uiState.value = AuthUiState(isSuccess = true)
                 }

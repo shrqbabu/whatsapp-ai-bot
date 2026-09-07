@@ -26,6 +26,7 @@ import com.whatsappai.assistant.core.ui.components.AppTopBar
 import com.whatsappai.assistant.core.ui.components.ErrorBanner
 import com.whatsappai.assistant.core.ui.components.LoadingView
 import com.whatsappai.assistant.data.model.BusinessHourDTO
+import com.whatsappai.assistant.data.model.UpdateBusinessHoursRequest
 import com.whatsappai.assistant.data.repository.BusinessHoursRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -122,7 +123,7 @@ class BusinessHoursViewModel(
                 )
             }
 
-            when (val result = repository.updateSchedule(updatedList)) {
+            when (val result = repository.updateSchedule(UpdateBusinessHoursRequest(updatedList))) {
                 is NetworkResult.Success -> {
                     _uiState.value = _uiState.value.copy(
                         isSaving = false,

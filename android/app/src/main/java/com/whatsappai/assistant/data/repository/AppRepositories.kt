@@ -89,7 +89,7 @@ class WhatsAppRepository(private val apiService: ApiService) : BaseRepository() 
     suspend fun getQrCode(): NetworkResult<QrResponseData> = safeApiCall { apiService.getWhatsAppQr() }
 }
 
-class AISettingsRepository(private val apiService: ApiService) : BaseRepository() {
+class AIRepository(private val apiService: ApiService) : BaseRepository() {
     suspend fun getSettings(): NetworkResult<AISettingsDTO> = safeApiCall { apiService.getAISettings() }
     suspend fun updateSettings(request: UpdateAISettingsRequest): NetworkResult<AISettingsDTO> =
         safeApiCall { apiService.updateAISettings(request) }
