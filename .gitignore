@@ -1,6 +1,26 @@
-# Dependency directories
+# Android build outputs & caches
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+*.ap_
+captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+.idea/
+*.iml
+.DS_Store
+
+# Node.js backend
 node_modules/
-
-.env.*
-!.env.example
-
+dist/
+data/*.db
+data/*.db-journal
+data/*.db-wal
+storage/sessions/
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -1,0 +1,121 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main", "master", "**" ]
+    tags:
+      - "v*"
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type (debug / release / both)'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+          - both
+
+jobs:
+  build-apk:
+    name: Build & Export APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 📱 Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 🐘 Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: 🔍 Locate Android Project & Initialize Wrapper
+        run: |
+          if [ -d "whatsapp-ai-assistant/android" ]; then
+            PROJECT_DIR="whatsapp-ai-assistant/android"
+          elif [ -d "android" ]; then
+            PROJECT_DIR="android"
+          else
+            PROJECT_DIR="."
+          fi
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+          echo "Found Android project at: $PROJECT_DIR"
+
+          cd $PROJECT_DIR
+          mkdir -p gradle/wrapper
+          if [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
+            echo "Downloading gradle-wrapper.jar..."
+            curl -sLo gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.10.2/gradle/wrapper/gradle-wrapper.jar || true
+          fi
+          if [ -f "gradlew" ]; then
+            chmod +x gradlew
+          fi
+
+      - name: 🔨 Build Debug APK
+        if: ${{ github.event.inputs.build_type == 'debug' || github.event.inputs.build_type == 'both' || github.event.inputs.build_type == '' }}
+        run: |
+          cd $PROJECT_DIR
+          if [ -f "./gradlew" ]; then
+            ./gradlew assembleDebug --no-daemon --stacktrace
+          else
+            gradle assembleDebug --no-daemon --stacktrace
+          fi
+
+      - name: 🔨 Build Release APK
+        if: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == 'both' }}
+        run: |
+          cd $PROJECT_DIR
+          if [ -f "./gradlew" ]; then
+            ./gradlew assembleRelease --no-daemon --stacktrace
+          else
+            gradle assembleRelease --no-daemon --stacktrace
+          fi
+
+      - name: 📦 Collect & Rename Output APKs
+        run: |
+          mkdir -p build-artifacts
+          find . -name "*.apk" -exec cp {} build-artifacts/ \;
+          echo "Collected APKs:"
+          ls -la build-artifacts/
+
+      - name: 🚀 Upload Debug APK to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: WhatsApp-AI-Assistant-Debug-APK
+          path: build-artifacts/*debug*.apk
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: 🚀 Upload All APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: WhatsApp-AI-Assistant-All-APKs
+          path: build-artifacts/*.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: 🏷️ Publish GitHub Release (On Tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build-artifacts/*.apk
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -2,6 +2,7 @@
   "name": "whatsapp-ai-backend",
   "version": "1.0.0",
   "description": "Multi-Tenant WhatsApp AI Auto-Reply Backend with Baileys and Isolated Sessions",
+  "type": "module",
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
