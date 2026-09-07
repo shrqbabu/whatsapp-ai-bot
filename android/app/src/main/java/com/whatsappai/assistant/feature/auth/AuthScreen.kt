@@ -109,6 +109,7 @@ fun AuthScreen(
     var passwordVisible by remember { mutableStateOf(false) }
 
     var showServerDialog by remember { mutableStateOf(false) }
+    var currentServerUrl by remember { mutableStateOf(viewModel.getServerUrl()) }
     var tempServerUrl by remember { mutableStateOf(viewModel.getServerUrl()) }
 
     LaunchedEffect(uiState.isSuccess) {
@@ -268,10 +269,13 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Server URL configuration button
-            TextButton(onClick = { showServerDialog = true }) {
+            TextButton(onClick = {
+                tempServerUrl = viewModel.getServerUrl()
+                showServerDialog = true
+            }) {
                 Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Backend Server: ${viewModel.getServerUrl()}", fontSize = 12.sp)
+                Text("Backend Server: $currentServerUrl", fontSize = 12.sp)
             }
         }
     }
@@ -293,7 +297,14 @@ fun AuthScreen(
             },
             confirmButton = {
                 Button(onClick = {
-                    viewModel.setServerUrl(tempServerUrl)
+                    var cleanUrl = tempServerUrl.trim()
+                    if (cleanUrl.isNotEmpty()) {
+                        if (!cleanUrl.startsWith("http://", ignoreCase = true) && !cleanUrl.startsWith("https://", ignoreCase = true)) {
+                            cleanUrl = "https://$cleanUrl"
+                        }
+                        viewModel.setServerUrl(cleanUrl)
+                        currentServerUrl = cleanUrl
+                    }
                     showServerDialog = false
                 }) {
                     Text("Save")

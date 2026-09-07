@@ -76,9 +76,13 @@ class ProfileViewModel(
     }
 
     fun updateServerUrl(url: String) {
-        tokenManager.setServerUrl(url.trim())
-        customServerUrl = url.trim()
-        urlSavedMessage = "Server URL updated to $url"
+        var cleanUrl = url.trim()
+        if (cleanUrl.isNotEmpty() && !cleanUrl.startsWith("http://", ignoreCase = true) && !cleanUrl.startsWith("https://", ignoreCase = true)) {
+            cleanUrl = "https://$cleanUrl"
+        }
+        tokenManager.setServerUrl(cleanUrl)
+        customServerUrl = cleanUrl
+        urlSavedMessage = "Server URL updated to $cleanUrl"
     }
 
     fun logout(onLoggedOut: () -> Unit) {

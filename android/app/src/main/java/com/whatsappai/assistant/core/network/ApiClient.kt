@@ -1,6 +1,7 @@
 package com.whatsappai.assistant.core.network
 
 import com.whatsappai.assistant.core.storage.TokenManager
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -20,6 +21,29 @@ class AuthInterceptor(private val tokenManager: TokenManager) : Interceptor {
     }
 }
 
+class HostSelectionInterceptor(private val tokenManager: TokenManager) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        var request = chain.request()
+        var serverUrl = tokenManager.getServerUrl().trim()
+        if (!serverUrl.startsWith("http://", ignoreCase = true) && !serverUrl.startsWith("https://", ignoreCase = true)) {
+            serverUrl = "https://$serverUrl"
+        }
+        val newHttpUrl = serverUrl.toHttpUrlOrNull()
+        if (newHttpUrl != null) {
+            val originalUrl = request.url
+            val newUrlBuilder = originalUrl.newBuilder()
+                .scheme(newHttpUrl.scheme)
+                .host(newHttpUrl.host)
+                .port(newHttpUrl.port)
+
+            request = request.newBuilder()
+                .url(newUrlBuilder.build())
+                .build()
+        }
+        return chain.proceed(request)
+    }
+}
+
 class ApiClient(private val tokenManager: TokenManager) {
 
     private var cachedRetrofit: Retrofit? = null
@@ -31,6 +55,7 @@ class ApiClient(private val tokenManager: TokenManager) {
         }
 
         return OkHttpClient.Builder()
+            .addInterceptor(HostSelectionInterceptor(tokenManager))
             .addInterceptor(AuthInterceptor(tokenManager))
             .addInterceptor(logging)
             .connectTimeout(ApiConstants.TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -40,7 +65,10 @@ class ApiClient(private val tokenManager: TokenManager) {
     }
 
     fun getRetrofit(): Retrofit {
-        val currentBaseUrl = tokenManager.getServerUrl().trimEnd('/') + "/"
+        var currentBaseUrl = tokenManager.getServerUrl().trim().trimEnd('/') + "/"
+        if (!currentBaseUrl.startsWith("http://", ignoreCase = true) && !currentBaseUrl.startsWith("https://", ignoreCase = true)) {
+            currentBaseUrl = "https://$currentBaseUrl"
+        }
         if (cachedRetrofit == null || cachedBaseUrl != currentBaseUrl) {
             cachedBaseUrl = currentBaseUrl
             cachedRetrofit = Retrofit.Builder()
