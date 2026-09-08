@@ -78,9 +78,9 @@ class TokenManager(context: Context) {
     private const val KEY_USER_ID = "user_id"
     private const val KEY_EMAIL = "email"
     private const val KEY_FULL_NAME = "full_name"
-    private const val KEY_SERVER_URL = "https://4000-cs-25873372005-default.cs-asia-southeast1-fork.cloudshell.dev"
+    private const val KEY_SERVER_URL = "server_url"
     
     // 👇 Yahan apna Cloud Shell / Server URL daal dein:
-    const val DEFAULT_SERVER_URL = "https://4000-cs-25873372005-default.cs-asia-southeast1-fork.cloudshell.dev"
+    const val DEFAULT_SERVER_URL = "https://epidermal-taste-nautical.ngrok-free.dev"
 }
 }
