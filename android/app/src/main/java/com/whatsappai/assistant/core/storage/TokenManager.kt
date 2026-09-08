@@ -74,11 +74,13 @@ class TokenManager(context: Context) {
     }
 
     companion object {
-        private const val KEY_TOKEN = "jwt_token"
-        private const val KEY_USER_ID = "user_id"
-        private const val KEY_EMAIL = "email"
-        private const val KEY_FULL_NAME = "full_name"
-        private const val KEY_SERVER_URL = "custom_server_url"
-        val DEFAULT_SERVER_URL = com.whatsappai.assistant.BuildConfig.BACKEND_URL
-    }
+    private const val KEY_TOKEN = "jwt_token"
+    private const val KEY_USER_ID = "user_id"
+    private const val KEY_EMAIL = "email"
+    private const val KEY_FULL_NAME = "full_name"
+    private const val KEY_SERVER_URL = "custom_server_url"
+    
+    // 👇 Yahan apna Cloud Shell / Server URL daal dein:
+    const val DEFAULT_SERVER_URL = "https://4000-cs-25873372005-default.cs-asia-southeast1-fork.cloudshell.dev"
+}
 }
