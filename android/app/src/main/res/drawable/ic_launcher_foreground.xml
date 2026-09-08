@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer WhatsApp Speech Bubble (White with Soft Drop Shadow) -->
+    <!-- Shadow -->
+    <path
+        android:pathData="M54,27 C67.8,27 79,38.2 79,52 C79,57.2 77.4,62 74.6,66 L77,75 L67.5,72.5 C63.5,75 58.9,76.5 54,76.5 C40.2,76.5 29,65.3 29,52 C29,38.2 40.2,27 54,27 Z"
+        android:fillColor="#26000000"/>
+
+    <!-- Main White WhatsApp Chat Bubble -->
+    <path
+        android:pathData="M54,25 C67.8,25 79,36.2 79,50 C79,55.2 77.4,60 74.6,64 L77,73 L67.5,70.5 C63.5,73 58.9,74.5 54,74.5 C40.2,74.5 29,63.3 29,50 C29,36.2 40.2,25 54,25 Z"
+        android:fillColor="#FFFFFF"/>
+
+    <!-- Inner AI Brain / Bot Shape in WhatsApp Green -->
+    <!-- Bot Antenna -->
+    <path
+        android:pathData="M54,34 L54,37"
+        android:strokeWidth="2"
+        android:strokeColor="#008069"
+        android:strokeLineCap="round"/>
+    <path
+        android:pathData="M54,33m-1.5,0a1.5,1.5 0 1,1 3,0a1.5,1.5 0 1,1 -3,0"
+        android:fillColor="#25D366"/>
+
+    <!-- Bot Face Body (Rounded rectangle) -->
+    <path
+        android:pathData="M42,37 h24 a4,4 0 0 1 4,4 v14 a4,4 0 0 1 -4,4 h-24 a4,4 0 0 1 -4,-4 v-14 a4,4 0 0 1 4,-4 z"
+        android:fillColor="#008069"/>
+
+    <!-- Bot Ears / Sensors -->
+    <path
+        android:pathData="M36,44 h2 v4 h-2 z"
+        android:fillColor="#075E54"/>
+    <path
+        android:pathData="M70,44 h2 v4 h-2 z"
+        android:fillColor="#075E54"/>
+
+    <!-- Bot Screen / Visor -->
+    <path
+        android:pathData="M41,41 h26 a2,2 0 0 1 2,2 v10 a2,2 0 0 1 -2,2 h-26 a2,2 0 0 1 -2,-2 v-10 a2,2 0 0 1 2,-2 z"
+        android:fillColor="#111B21"/>
+
+    <!-- Glowing AI Eyes (WhatsApp Light Green / Emerald) -->
+    <path
+        android:pathData="M46,47m-2.2,0a2.2,2.2 0 1,1 4.4,0a2.2,2.2 0 1,1 -4.4,0"
+        android:fillColor="#25D366"/>
+    <path
+        android:pathData="M62,47m-2.2,0a2.2,2.2 0 1,1 4.4,0a2.2,2.2 0 1,1 -4.4,0"
+        android:fillColor="#25D366"/>
+
+    <!-- AI Sparkle Smile / Data Pulse -->
+    <path
+        android:pathData="M49,51 Q54,54 59,51"
+        android:strokeWidth="1.5"
+        android:strokeColor="#25D366"
+        android:strokeLineCap="round"/>
+
+    <!-- Magic AI Sparkle 1 (Top Right) -->
+    <path
+        android:pathData="M78,28 Q83,28 83,23 Q83,28 88,28 Q83,28 83,33 Q83,28 78,28 Z"
+        android:fillColor="#FFD700"/>
+
+    <!-- Magic AI Sparkle 2 (Small Sparkle) -->
+    <path
+        android:pathData="M84,36 Q87,36 87,33 Q87,36 90,36 Q87,36 87,39 Q87,36 84,36 Z"
+        android:fillColor="#79F8DB"/>
+
+    <!-- Small Sparkle (Left) -->
+    <path
+        android:pathData="M23,38 Q26,38 26,35 Q26,38 29,38 Q26,38 26,41 Q26,38 23,38 Z"
+        android:fillColor="#FFFFFF"/>
+</vector>
