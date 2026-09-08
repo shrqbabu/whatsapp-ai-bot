@@ -24,6 +24,7 @@ import com.whatsappai.assistant.core.theme.WhatsAppGreenPrimary
 import com.whatsappai.assistant.core.ui.components.AppTopBar
 import com.whatsappai.assistant.core.ui.components.ErrorBanner
 import com.whatsappai.assistant.core.ui.components.LoadingView
+import com.whatsappai.assistant.core.ui.components.appSwitchColors
 import com.whatsappai.assistant.data.model.UpdateAISettingsRequest
 import com.whatsappai.assistant.data.repository.AIRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -175,7 +176,7 @@ fun GroupRulesScreen(
                             Switch(
                                 checked = groupsEnabled,
                                 onCheckedChange = { groupsEnabled = it },
-                                colors = SwitchDefaults.colors(checkedThumbColor = WhatsAppGreenDark)
+                                colors = appSwitchColors()
                             )
                         }
                     }
@@ -210,7 +211,7 @@ fun GroupRulesScreen(
                                 checked = replyOnlyWhenMentioned,
                                 onCheckedChange = { replyOnlyWhenMentioned = it },
                                 enabled = groupsEnabled,
-                                colors = SwitchDefaults.colors(checkedThumbColor = AiBlue)
+                                colors = appSwitchColors(checkedColor = AiBlue)
                             )
                         }
                     }
@@ -251,7 +252,7 @@ fun GroupRulesScreen(
                     } else {
                         Icon(Icons.Default.Save, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Save Group Rules", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Save Settings", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

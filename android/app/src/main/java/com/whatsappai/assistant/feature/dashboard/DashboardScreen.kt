@@ -139,6 +139,10 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.loadStats()
+    }
+
     Scaffold(
         topBar = {
             AppTopBar(
@@ -250,7 +254,7 @@ fun DashboardScreen(
                     Switch(
                         checked = uiState.stats.aiEnabled,
                         onCheckedChange = { onNavigateToAI() },
-                        colors = SwitchDefaults.colors(checkedThumbColor = WhatsAppGreenPrimary)
+                        colors = appSwitchColors()
                     )
                 }
             }

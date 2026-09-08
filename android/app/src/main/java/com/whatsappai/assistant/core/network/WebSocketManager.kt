@@ -20,6 +20,7 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import java.util.concurrent.TimeUnit
+import android.util.Log
 
 sealed class WsEvent {
     data class StatusUpdate(val status: String, val phoneNumber: String?) : WsEvent()
@@ -97,13 +98,15 @@ class WebSocketManager(
                     val eventName = json.get("event")?.asString ?: "unknown"
                     val data = json.getAsJsonObject("data") ?: JsonObject()
 
+                    Log.d("WebSocketManager", "WS message received: $eventName -> $data")
+
                     val wsEvent = parseEvent(eventName, data)
 
                     scope.launch {
                         _eventFlow.emit(wsEvent)
                     }
                 } catch (e: Exception) {
-                    // Ignore parse errors
+                    Log.w("WebSocketManager", "Error parsing WS message: $text", e)
                 }
             }
 
@@ -124,36 +127,37 @@ class WebSocketManager(
     }
 
     private fun parseEvent(eventName: String, data: JsonObject): WsEvent {
-        return when (eventName) {
-            "status_update", "whatsapp:status" -> {
+        val norm = eventName.replace(':', '.')
+        return when (norm) {
+            "status_update", "whatsapp.status" -> {
                 val status = data.get("status")?.asString ?: "UNKNOWN"
                 val phone = data.get("phoneNumber")?.asString
                 WsEvent.StatusUpdate(status, phone)
             }
-            "connected", "whatsapp:connected" -> {
+            "connected", "whatsapp.connected" -> {
                 val phone = data.get("phoneNumber")?.asString
                 WsEvent.Connected(phone)
             }
-            "disconnected", "whatsapp:disconnected" -> WsEvent.Disconnected
-            "reconnecting", "whatsapp:reconnecting" -> WsEvent.Reconnecting
-            "logged_out", "whatsapp:logged_out" -> WsEvent.LoggedOut
-            "qr", "qr_update", "whatsapp:qr" -> {
+            "disconnected", "whatsapp.disconnected" -> WsEvent.Disconnected
+            "reconnecting", "whatsapp.reconnecting" -> WsEvent.Reconnecting
+            "logged_out", "whatsapp.logged_out" -> WsEvent.LoggedOut
+            "qr", "qr_update", "whatsapp.qr" -> {
                 val qr = data.get("qr")?.asString ?: ""
                 WsEvent.QrUpdate(qr)
             }
-            "message_received", "message:received" -> {
+            "message_received", "message.received" -> {
                 val convId = data.get("conversationId")?.asString ?: data.get("conversation_id")?.asString
                 WsEvent.MessageReceived(convId, data)
             }
-            "message_sent", "message:sent" -> {
+            "message_sent", "message.sent" -> {
                 val convId = data.get("conversationId")?.asString ?: data.get("conversation_id")?.asString
                 WsEvent.MessageSent(convId, data)
             }
-            "ai_replied", "message:ai_replied" -> {
+            "ai_replied", "ai.replied" -> {
                 val convId = data.get("conversationId")?.asString ?: data.get("conversation_id")?.asString
                 WsEvent.AiReplied(convId, data)
             }
-            "takeover_changed", "takeover:changed" -> {
+            "takeover_changed", "takeover.changed" -> {
                 val convId = data.get("conversationId")?.asString ?: data.get("conversation_id")?.asString ?: ""
                 val active = data.get("active")?.asBoolean ?: false
                 WsEvent.TakeoverChanged(convId, active)

@@ -25,6 +25,7 @@ import com.whatsappai.assistant.core.theme.WhatsAppGreenPrimary
 import com.whatsappai.assistant.core.ui.components.AppTopBar
 import com.whatsappai.assistant.core.ui.components.ErrorBanner
 import com.whatsappai.assistant.core.ui.components.LoadingView
+import com.whatsappai.assistant.core.ui.components.appSwitchColors
 import com.whatsappai.assistant.data.model.BusinessHourDTO
 import com.whatsappai.assistant.data.model.UpdateBusinessHoursRequest
 import com.whatsappai.assistant.data.repository.BusinessHoursRepository
@@ -286,7 +287,7 @@ fun BusinessHoursScreen(
                                 Switch(
                                     checked = dayItem.enabled,
                                     onCheckedChange = { viewModel.toggleDay(dayItem.dayOfWeek, it) },
-                                    colors = SwitchDefaults.colors(checkedThumbColor = WhatsAppGreenDark)
+                                    colors = appSwitchColors()
                                 )
                             }
 
@@ -338,7 +339,7 @@ fun BusinessHoursScreen(
                     } else {
                         Icon(Icons.Default.Save, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Save Business Hours Schedule", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Save Settings", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

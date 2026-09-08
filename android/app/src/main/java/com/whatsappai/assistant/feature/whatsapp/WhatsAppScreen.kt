@@ -28,10 +28,12 @@ import com.whatsappai.assistant.core.theme.*
 import com.whatsappai.assistant.core.ui.components.*
 import com.whatsappai.assistant.data.model.WhatsAppStatusDTO
 import com.whatsappai.assistant.data.repository.WhatsAppRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import androidx.compose.ui.text.style.TextOverflow
 
 data class WhatsAppConnectionUiState(
     val isLoading: Boolean = false,
@@ -137,19 +139,24 @@ class WhatsAppViewModel(
             webSocketManager.events.collect { event ->
                 when (event) {
                     is WsEvent.StatusUpdate -> {
+                        val isConn = event.status.equals("CONNECTED", ignoreCase = true)
                         _uiState.value = _uiState.value.copy(
-                            status = event.status,
-                            phoneNumber = event.phoneNumber ?: _uiState.value.phoneNumber
+                            isLoading = false,
+                            status = if (isConn) "CONNECTED" else event.status,
+                            phoneNumber = event.phoneNumber ?: _uiState.value.phoneNumber,
+                            qrCode = if (isConn) null else _uiState.value.qrCode
                         )
                     }
                     is WsEvent.QrUpdate -> {
                         _uiState.value = _uiState.value.copy(
+                            isLoading = false,
                             status = "QR_REQUIRED",
                             qrCode = event.qr
                         )
                     }
                     is WsEvent.Connected -> {
                         _uiState.value = _uiState.value.copy(
+                            isLoading = false,
                             status = "CONNECTED",
                             phoneNumber = event.phoneNumber,
                             qrCode = null
@@ -157,17 +164,20 @@ class WhatsAppViewModel(
                     }
                     is WsEvent.Disconnected -> {
                         _uiState.value = _uiState.value.copy(
+                            isLoading = false,
                             status = "DISCONNECTED",
                             qrCode = null
                         )
                     }
                     is WsEvent.Reconnecting -> {
                         _uiState.value = _uiState.value.copy(
+                            isLoading = false,
                             status = "RECONNECTING"
                         )
                     }
                     is WsEvent.LoggedOut -> {
                         _uiState.value = _uiState.value.copy(
+                            isLoading = false,
                             status = "LOGGED_OUT",
                             phoneNumber = null,
                             qrCode = null
@@ -314,7 +324,12 @@ fun WhatsAppConnectionScreen(
                 ) {
                     Icon(Icons.Default.DeleteOutline, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Unlink & Clear Session Auth", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Unlink WhatsApp Session",
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             } else {
                 Button(
@@ -331,7 +346,13 @@ fun WhatsAppConnectionScreen(
                 ) {
                     Icon(Icons.Default.QrCode, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Connect WhatsApp (Scan QR)", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Link WhatsApp (Scan QR)",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 
@@ -399,9 +420,22 @@ fun QRCodeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    // 1. Auto-connect and fetch QR immediately when screen opens
+    LaunchedEffect(Unit) {
+        if (uiState.status != "CONNECTED") {
+            viewModel.connectWhatsApp()
+        }
+    }
+
+    // 2. Continuous status sync while pairing & auto-navigate on connection
     LaunchedEffect(uiState.status) {
         if (uiState.status == "CONNECTED") {
             onConnected()
+        } else {
+            while (uiState.status == "CONNECTING" || uiState.status == "QR_REQUIRED" || uiState.status == "RECONNECTING" || uiState.status == "DISCONNECTED") {
+                delay(2500)
+                viewModel.fetchStatus()
+            }
         }
     }
 

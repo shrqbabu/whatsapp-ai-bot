@@ -409,3 +409,16 @@ fun ConfirmDialog(
         }
     )
 }
+
+@Composable
+fun appSwitchColors(checkedColor: Color = WhatsAppGreenPrimary): SwitchColors {
+    return SwitchDefaults.colors(
+        checkedThumbColor = Color.White,
+        checkedTrackColor = checkedColor,
+        checkedBorderColor = checkedColor,
+        uncheckedThumbColor = Color(0xFF757575),
+        uncheckedTrackColor = Color(0xFFE0E0E0),
+        uncheckedBorderColor = Color(0xFFBDBDBD)
+    )
+}
+

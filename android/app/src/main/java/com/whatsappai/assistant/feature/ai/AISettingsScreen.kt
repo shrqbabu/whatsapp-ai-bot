@@ -28,6 +28,7 @@ import com.whatsappai.assistant.core.theme.WhatsAppGreenPrimary
 import com.whatsappai.assistant.core.ui.components.AppTopBar
 import com.whatsappai.assistant.core.ui.components.ErrorBanner
 import com.whatsappai.assistant.core.ui.components.LoadingView
+import com.whatsappai.assistant.core.ui.components.appSwitchColors
 import com.whatsappai.assistant.data.model.AISettingsDTO
 import com.whatsappai.assistant.data.model.UpdateAISettingsRequest
 import com.whatsappai.assistant.data.repository.AIRepository
@@ -237,7 +238,7 @@ fun AISettingsScreen(
                         Switch(
                             checked = viewModel.enabled,
                             onCheckedChange = { viewModel.enabled = it },
-                            colors = SwitchDefaults.colors(checkedThumbColor = WhatsAppGreenDark)
+                            colors = appSwitchColors()
                         )
                     }
                 }
@@ -460,7 +461,7 @@ fun AISettingsScreen(
                     } else {
                         Icon(Icons.Default.Save, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Save OpenAI-Compatible Settings", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Save Settings", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

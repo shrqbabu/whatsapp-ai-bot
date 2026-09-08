@@ -24,6 +24,7 @@ import com.whatsappai.assistant.core.ui.components.AppTopBar
 import com.whatsappai.assistant.core.ui.components.EmptyStateView
 import com.whatsappai.assistant.core.ui.components.ErrorBanner
 import com.whatsappai.assistant.core.ui.components.LoadingView
+import com.whatsappai.assistant.core.ui.components.appSwitchColors
 import com.whatsappai.assistant.data.model.ContactDTO
 import com.whatsappai.assistant.data.model.UpdateContactRuleRequest
 import com.whatsappai.assistant.data.repository.ContactsRepository
@@ -279,7 +280,7 @@ fun ContactRuleCard(
                         checked = contact.aiEnabled && !contact.blocked,
                         onCheckedChange = { onToggleAi(it) },
                         enabled = !contact.blocked,
-                        colors = SwitchDefaults.colors(checkedThumbColor = WhatsAppGreenDark)
+                        colors = appSwitchColors()
                     )
                 }
 
@@ -290,7 +291,7 @@ fun ContactRuleCard(
                     Switch(
                         checked = contact.blocked,
                         onCheckedChange = { onToggleBlock(it) },
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.error)
+                        colors = appSwitchColors(checkedColor = MaterialTheme.colorScheme.error)
                     )
                 }
             }
