@@ -57,7 +57,7 @@ class TokenManager(context: Context) {
     }
 
     fun getServerUrl(): String {
-        return com.whatsappai.assistant.BuildConfig.BACKEND_URL
+        return DEFAULT_SERVER_URL
     }
 
     fun setServerUrl(url: String) {
