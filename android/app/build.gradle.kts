@@ -19,7 +19,7 @@ for (envFile in envFiles) {
         try {
             FileInputStream(envFile).use { envProperties.load(it) }
             break
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
     }
 }
 
@@ -50,6 +50,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

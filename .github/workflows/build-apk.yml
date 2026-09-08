@@ -72,24 +72,17 @@ jobs:
             chmod +x gradlew
           fi
 
-      - name: 🔨 Build Debug APK
-        if: ${{ github.event.inputs.build_type == 'debug' || github.event.inputs.build_type == 'both' || github.event.inputs.build_type == '' }}
+      - name: 🔨 Build APK
         run: |
           cd $PROJECT_DIR
-          if [ -f "./gradlew" ]; then
+          BUILD_TYPE="${{ github.event.inputs.build_type }}"
+          echo "Selected build type: ${BUILD_TYPE:-default (both)}"
+          if [ "$BUILD_TYPE" = "debug" ]; then
             ./gradlew assembleDebug -Pandroid.useAndroidX=true -Pandroid.nonTransitiveRClass=true --no-daemon --stacktrace
-          else
-            gradle assembleDebug -Pandroid.useAndroidX=true -Pandroid.nonTransitiveRClass=true --no-daemon --stacktrace
-          fi
-
-      - name: 🔨 Build Release APK
-        if: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == 'both' }}
-        run: |
-          cd $PROJECT_DIR
-          if [ -f "./gradlew" ]; then
+          elif [ "$BUILD_TYPE" = "release" ]; then
             ./gradlew assembleRelease -Pandroid.useAndroidX=true -Pandroid.nonTransitiveRClass=true --no-daemon --stacktrace
           else
-            gradle assembleRelease -Pandroid.useAndroidX=true -Pandroid.nonTransitiveRClass=true --no-daemon --stacktrace
+            ./gradlew assembleDebug assembleRelease -Pandroid.useAndroidX=true -Pandroid.nonTransitiveRClass=true --no-daemon --stacktrace
           fi
 
       - name: 📦 Collect & Rename Output APKs
