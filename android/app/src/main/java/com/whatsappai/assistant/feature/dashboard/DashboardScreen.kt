@@ -30,6 +30,7 @@ import com.whatsappai.assistant.core.ui.components.AppTopBar
 import com.whatsappai.assistant.core.ui.components.ErrorBanner
 import com.whatsappai.assistant.core.ui.components.MetricCard
 import com.whatsappai.assistant.core.ui.components.StatusBadge
+import com.whatsappai.assistant.core.ui.components.appSwitchColors
 import com.whatsappai.assistant.data.model.DashboardStatsDTO
 import com.whatsappai.assistant.data.repository.DashboardRepository
 import kotlinx.coroutines.flow.MutableStateFlow
