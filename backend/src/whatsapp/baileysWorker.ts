@@ -55,6 +55,20 @@ export class BaileysWorker {
 
   async connect(): Promise<void> {
     this.isExplicitlyClosed = false;
+
+    // Clean up any existing socket before reconnecting to prevent orphaned query timeouts
+    if (this.socket) {
+      try {
+        this.socket.ev.removeAllListeners('connection.update');
+        this.socket.ev.removeAllListeners('creds.update');
+        this.socket.ev.removeAllListeners('messages.upsert');
+        this.socket.end(undefined);
+      } catch {
+        // ignore cleanup error
+      }
+      this.socket = null;
+    }
+
     logEvent(
       { userId: this.userId, sessionId: this.sessionId, event: 'WHATSAPP_CONNECTING' },
       'Initializing Baileys socket'
@@ -76,6 +90,7 @@ export class BaileysWorker {
         syncFullHistory: false,
         browser: ['WhatsApp AI Assistant', 'Chrome', '120.0.0'],
         connectTimeoutMs: 60000,
+        defaultQueryTimeoutMs: 60000,
         keepAliveIntervalMs: 25000,
       });
 

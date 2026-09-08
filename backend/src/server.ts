@@ -6,6 +6,14 @@ import { logEvent, logger } from './utils/logger.js';
 import { setupWebSocketServer } from './websocket/wsServer.js';
 import { WhatsAppSessionManager } from './whatsapp/sessionManager.js';
 
+process.on('unhandledRejection', (reason, promise) => {
+  logger.warn({ reason, promise }, 'Intercepted unhandled promise rejection (prevented crash)');
+});
+
+process.on('uncaughtException', (error) => {
+  logger.error({ error }, 'Intercepted uncaught exception (prevented crash)');
+});
+
 async function bootstrap() {
   try {
     logger.info('Starting WhatsApp AI Multi-Tenant Backend...');
@@ -54,14 +62,6 @@ async function bootstrap() {
 
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
-
-    process.on('unhandledRejection', (reason, promise) => {
-      logger.error({ reason, promise }, 'Unhandled Rejection at Promise');
-    });
-
-    process.on('uncaughtException', (error) => {
-      logger.error({ error }, 'Uncaught Exception thrown');
-    });
   } catch (error) {
     logger.fatal({ error }, 'Fatal error during server bootstrap');
     process.exit(1);
